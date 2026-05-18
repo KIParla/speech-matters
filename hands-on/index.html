@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Git for Multilayer Spoken Corpus Development</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<style>
+:root {
+  --bg:      #0e0f11;
+  --surface: #16181c;
+  --border:  #2a2d35;
+  --accent:  #c8b560;
+  --accent2: #7eb8c9;
+  --text:    #e8e4d8;
+  --muted:   #7a7870;
+  --code-bg: #1c1f26;
+  --font-head: 'Playfair Display', Georgia, serif;
+  --font-body: 'IBM Plex Sans', 'Helvetica Neue', sans-serif;
+  --font-mono: 'IBM Plex Mono', 'Courier New', monospace;
+}
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-weight:300;font-size:16px;line-height:1.6;height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+/* topbar */
+#topbar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:0.5px solid var(--border);background:var(--surface);flex-shrink:0;height:44px;gap:16px}
+#course-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;flex-shrink:0}
+#section-tabs{display:flex;gap:2px;flex:1;justify-content:center;height:100%;align-items:stretch}
+.sec-tab{background:none;border:none;color:var(--muted);font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;padding:0 14px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
+.sec-tab:hover{color:var(--text)}
+.sec-tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+#right-bar{display:flex;align-items:center;gap:12px;flex-shrink:0}
+#slide-counter{font-family:var(--font-mono);font-size:11px;color:var(--muted);white-space:nowrap}
+#progress-bar{width:80px;height:2px;background:var(--border);border-radius:1px;overflow:hidden}
+#progress-fill{height:100%;background:var(--accent);border-radius:1px;transition:width .3s ease}
+
+/* stage */
+#stage{flex:1;display:flex;align-items:stretch;overflow:hidden;position:relative}
+.slide{position:absolute;inset:0;padding:52px 80px 40px;display:flex;flex-direction:column;justify-content:center;opacity:0;transform:translateX(40px);transition:opacity .28s ease,transform .28s ease;pointer-events:none;overflow-y:auto}
+.slide.active{opacity:1;transform:translateX(0);pointer-events:auto}
+@media(min-width:900px){.slide{padding:58px 100px 46px}}
+
+/* section chip */
+.section-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:24px;font-family:var(--font-mono);flex-shrink:0}
+
+/* title slide */
+.slide-title{background:var(--surface)}
+.slide-title h1{font-family:var(--font-head);font-size:clamp(26px,3.2vw,44px);font-weight:400;line-height:1.2;color:var(--text);max-width:820px;margin-bottom:24px}
+.slide-title .rule{width:56px;height:2px;background:var(--accent);margin:20px 0}
+.slide-title p{font-size:14px;color:var(--muted)}
+.slide-title strong{color:var(--accent2);font-weight:400}
+
+/* quote slide */
+.slide-quote{background:var(--surface)}
+.slide-quote blockquote{border-left:3px solid var(--accent);padding-left:28px;margin:0 0 20px;max-width:780px}
+.slide-quote blockquote p{font-family:var(--font-head);font-size:clamp(16px,1.9vw,23px);font-style:italic;color:var(--text);line-height:1.55}
+.slide-quote blockquote p em{color:var(--accent);font-style:normal}
+
+/* heading */
+.slide h2{font-family:var(--font-head);font-size:clamp(20px,2.6vw,34px);font-weight:400;color:var(--text);margin-bottom:28px;line-height:1.25;border-bottom:0.5px solid var(--border);padding-bottom:14px;flex-shrink:0}
+
+/* body */
+.slide p{font-size:clamp(13px,1.45vw,17px);line-height:1.7;color:var(--text);max-width:780px;margin-bottom:14px}
+.slide p em{color:var(--accent);font-style:italic}
+.slide p strong{color:var(--accent2);font-weight:500}
+.slide p>em:only-child{font-size:12px;color:var(--muted);font-style:normal;font-family:var(--font-mono);display:block;margin-top:-6px;margin-bottom:14px}
+
+/* blockquote in body slides */
+.slide blockquote{border-left:3px solid var(--accent);padding-left:22px;margin:0 0 18px;max-width:780px}
+.slide blockquote p{font-family:var(--font-head);font-size:clamp(13px,1.5vw,18px);font-style:italic;color:var(--text);line-height:1.5;margin-bottom:6px}
+.slide blockquote p em{color:var(--accent);font-style:normal}
+
+/* lists */
+.slide ul,.slide ol{padding-left:20px;max-width:780px;margin-bottom:18px}
+.slide li{font-size:clamp(13px,1.4vw,16px);line-height:1.7;margin-bottom:9px;color:var(--text)}
+.slide li strong{color:var(--accent2);font-weight:500}
+.slide li em{color:var(--accent);font-style:italic}
+.slide ul li::marker{color:var(--accent)}
+
+/* code */
+.slide pre{background:var(--code-bg);border:0.5px solid var(--border);border-left:3px solid var(--accent2);border-radius:6px;padding:18px 22px;margin:0 0 18px;overflow-x:auto;max-width:860px;flex-shrink:0}
+.slide pre code{font-family:var(--font-mono);font-size:clamp(10px,1vw,13px);line-height:1.65;color:#a8c4cc}
+.slide code:not(pre code){font-family:var(--font-mono);font-size:.87em;background:var(--code-bg);border:0.5px solid var(--border);padding:1px 5px;border-radius:3px;color:var(--accent2)}
+
+/* tables */
+.slide table{border-collapse:collapse;width:100%;max-width:860px;margin-bottom:18px;font-size:clamp(11px,1.2vw,14px)}
+.slide th{background:var(--code-bg);color:var(--accent);font-weight:500;font-family:var(--font-mono);font-size:.84em;letter-spacing:.04em;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border)}
+.slide td{padding:8px 13px;border-bottom:0.5px solid var(--border);color:var(--text);vertical-align:top}
+.slide tr:last-child td{border-bottom:none}
+.slide tr:hover td{background:rgba(200,181,96,.04)}
+
+/* special */
+.slide-summary h2{color:var(--accent)}
+.slide-refs h2{font-size:18px;color:var(--muted)}
+.slide-refs li{font-size:12px;color:var(--muted);margin-bottom:5px;line-height:1.5}
+
+/* navbar */
+#navbar{display:flex;align-items:center;justify-content:space-between;padding:10px 24px;border-top:0.5px solid var(--border);background:var(--surface);flex-shrink:0}
+.nav-btn{background:none;border:0.5px solid var(--border);color:var(--muted);font-family:var(--font-mono);font-size:12px;padding:5px 16px;border-radius:4px;cursor:pointer;letter-spacing:.06em;transition:color .15s,border-color .15s,background .15s}
+.nav-btn:hover:not(:disabled){color:var(--text);border-color:var(--accent);background:rgba(200,181,96,.06)}
+.nav-btn:disabled{opacity:.22;cursor:default}
+#kbd-hint{font-family:var(--font-mono);font-size:11px;color:var(--muted);letter-spacing:.04em;text-align:center}
+
+/* loading */
+#loading{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--font-mono);font-size:13px;color:var(--muted);letter-spacing:.08em}
+
+/* scrollbar */
+.slide::-webkit-scrollbar{width:3px}
+.slide::-webkit-scrollbar-track{background:transparent}
+.slide::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+
+/* licence footer */
+#footer-license{font-family:var(--font-mono);font-size:10px;color:var(--muted);letter-spacing:.04em;text-align:right;padding:4px 24px;background:var(--surface);border-top:0.5px solid var(--border);flex-shrink:0}
+#footer-license a{color:var(--muted);text-decoration:underline;text-underline-offset:2px}
+#footer-license a:hover{color:var(--accent)}
+</style>
+<meta name="license" content="CC BY-NC 4.0 — https://creativecommons.org/licenses/by-nc/4.0/">
+<meta name="author" content="Dr. Ludovica Pannitto — Università di Bologna">
+</head>
+<body>
+
+<div id="topbar">
+  <span id="course-label">Git · Spoken Corpora</span>
+  <nav id="section-tabs" aria-label="Sections"></nav>
+  <div id="right-bar">
+    <span id="slide-counter">— / —</span>
+    <div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div id="stage">
+  <div id="loading">Loading slides…</div>
+</div>
+
+<div id="navbar">
+  <button class="nav-btn" id="btn-prev" disabled>← prev</button>
+  <span id="kbd-hint">← → arrow keys &nbsp;·&nbsp; 1–4 switch section &nbsp;·&nbsp; F fullscreen</span>
+  <button class="nav-btn" id="btn-next" disabled>next →</button>
+</div>
+
+<div id="footer-license">
+  <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">CC BY-NC 4.0</a>
+  &nbsp;·&nbsp; Dr. Ludovica Pannitto — Università di Bologna &nbsp;·&nbsp; 2025
+</div>
+
+<script>
+const SECTIONS = [
+  { file:'section1.md', label:'1 · Motivation',   chip:'Part 1 · Why spoken corpora are hard to manage collaboratively' },
+  { file:'section2.md', label:'2 · Git & GitHub', chip:'Part 2 · Git & GitHub core concepts' },
+  { file:'section3.md', label:'3 · Dati parlati',  chip:'Part 3 · Git e i corpora parlati: il caso specifico' },
+  { file:'section4.md', label:'4 · Hands-on',     chip:'Part 4 · Hands-on: building the workflow' },
+];
+
+let currentSection = 0, currentSlide = 0;
+let sections = []; // array of arrays of DOM nodes
+
+function parseSlides(md){ return md.split(/\n---\n/).map(s=>s.trim()).filter(Boolean); }
+
+function classify(html,idx){
+  if(idx===0) return 'slide-title';
+  if(html.includes('<blockquote>') && !html.includes('<h2>')) return 'slide-quote';
+  if(/Summary/.test(html)) return 'slide-summary';
+  if(/References/.test(html)) return 'slide-refs';
+  return '';
+}
+
+function buildSlide(raw,idx,si){
+  const html = marked.parse(raw);
+  const cls  = classify(html,idx);
+  const div  = document.createElement('div');
+  div.className = 'slide'+(cls?' '+cls:'');
+
+  const chip = document.createElement('div');
+  chip.className='section-label';
+  chip.textContent = SECTIONS[si].chip;
+
+  if(cls==='slide-title'){
+    const tmp=document.createElement('div'); tmp.innerHTML=html;
+    const h1=tmp.querySelector('h1');
+    div.appendChild(chip);
+    if(h1) div.appendChild(h1);
+    const rule=document.createElement('div'); rule.className='rule'; div.appendChild(rule);
+    [...tmp.children].forEach(el=>div.appendChild(el));
+  } else {
+    div.appendChild(chip);
+    const c=document.createElement('div'); c.innerHTML=html; div.appendChild(c);
+  }
+  return div;
+}
+
+async function fetchMd(file){
+  try{
+    const r=await fetch(file);
+    if(!r.ok) throw 0;
+    return await r.text();
+  }catch{ return FALLBACKS[file]||`## Coming soon\n\nThis section is not yet available.`; }
+}
+
+async function loadSection(idx){
+  if(sections[idx]) return;
+  const md=await fetchMd(SECTIONS[idx].file);
+  const stage=document.getElementById('stage');
+  sections[idx]=parseSlides(md).map((raw,i)=>{
+    const s=buildSlide(raw,i,idx);
+    s.style.display='none';
+    stage.appendChild(s);
+    return s;
+  });
+}
+
+function showSlide(si,ii,dir){
+  const cur=sections[currentSection]?.[currentSlide];
+  if(cur){
+    cur.classList.remove('active');
+    cur.style.opacity='0';
+    cur.style.transform=dir>=0?'translateX(-40px)':'translateX(40px)';
+    setTimeout(()=>{ cur.style.opacity=''; cur.style.transform=''; cur.style.display='none'; },300);
+  }
+  currentSection=si; currentSlide=ii;
+  const next=sections[si][ii];
+  next.style.display='';
+  if(dir!==0){
+    next.style.opacity='0';
+    next.style.transform=dir>=0?'translateX(40px)':'translateX(-40px)';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{ next.style.opacity=''; next.style.transform=''; }));
+  }
+  next.classList.add('active');
+
+  const total=sections[si].length;
+  document.getElementById('slide-counter').textContent=`${ii+1} / ${total}`;
+  document.getElementById('progress-fill').style.width=(total>1?(ii/(total-1))*100:100)+'%';
+  document.getElementById('btn-prev').disabled=si===0&&ii===0;
+  document.getElementById('btn-next').disabled=si===SECTIONS.length-1&&ii===total-1;
+  document.querySelectorAll('.sec-tab').forEach((t,i)=>t.classList.toggle('active',i===si));
+}
+
+async function go(delta){
+  let s=currentSection, i=currentSlide+delta;
+  if(i<0){ s--; if(s<0)return; await loadSection(s); i=sections[s].length-1; }
+  else if(i>=sections[currentSection].length){ s++; if(s>=SECTIONS.length)return; await loadSection(s); i=0; }
+  showSlide(s,i,delta);
+}
+
+async function jumpSection(idx){
+  if(idx===currentSection)return;
+  await loadSection(idx);
+  showSlide(idx,0,idx>currentSection?1:-1);
+}
+
+function buildTabs(){
+  const nav=document.getElementById('section-tabs');
+  SECTIONS.forEach((sec,i)=>{
+    const btn=document.createElement('button');
+    btn.className='sec-tab'; btn.textContent=sec.label;
+    btn.addEventListener('click',()=>jumpSection(i));
+    nav.appendChild(btn);
+  });
+}
+
+document.addEventListener('keydown',e=>{
+  if(['ArrowRight','ArrowDown',' '].includes(e.key)){e.preventDefault();go(1);}
+  if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(-1);}
+  if(e.key==='f'||e.key==='F') document.documentElement.requestFullscreen?.();
+  if(e.key>='1'&&e.key<='4') jumpSection(parseInt(e.key)-1);
+});
+document.getElementById('btn-next').addEventListener('click',()=>go(1));
+document.getElementById('btn-prev').addEventListener('click',()=>go(-1));
+let tx=null;
+document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;});
+document.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)go(dx<0?1:-1);tx=null;});
+
+(async()=>{
+  buildTabs();
+  document.getElementById('loading').remove();
+  await loadSection(0);
+  showSlide(0,0,0);
+  loadSection(1).catch(()=>{});
+})();
+
+// ── Embedded fallbacks ──────────────────────────────────────
+const FALLBACKS = {
+'section1.md': `# Git as a Collaborative Environment for Multilayer Spoken Resource Development
+
+**Summer School Lab · Part 1 of 4**
+Dr. Ludovica Pannitto — Università di Bologna
+
+---
+
+## Why spoken corpora are hard to manage collaboratively
+
+> "Nothing is, in and of itself, a datum; instead, it is a datum for somebody in some perspective."
+>
+> — Lehmann (2004), *Data in linguistics*
+
+---
+
+## Human language is first and foremost spoken
+
+- Spoken interaction is **structurally underrepresented** in language resources
+- Growing interest in NLP in modelling language *in interaction* — beyond speech
+- Interactional phenomena (overlaps, repairs, backchannels, disfluencies) are often treated as marginal or excluded from downstream formats
+
+*Chrupała (2023) · Dobrovoljc (2022) · Linell (2019)*
+
+---
+
+## The multilayer problem
+
+A spoken corpus is not a text. It is a **stratification of interpretive layers**:
+
+\`\`\`
+raw audio
+  └── pseudonymized audio          [GDPR pipeline]
+        └── Jefferson transcription [ELAN / expert linguist]
+              └── orthographic form  [normalization scripts]
+                    └── morphosyntax  [POS tagger + manual revision]
+                          └── syntax   [UD treebank annotation]
+                                └── metadata
+\`\`\`
+
+Each layer: different person · different tool · different time
+
+---
+
+## KIParla: a running example
+
+A large (~2M token) corpus of spontaneous spoken Italian
+
+- Started in **2016**, collaboration between University of Bologna and University of Turin
+- Built around **modularity**: new modules added with compatible metadata and transcription conventions
+- Data collection → archiving → transcription (Jefferson conventions in ELAN) → revision by a single expert linguist → pseudonymization → release
+
+*Mauri et al. (2019) · Pannitto et al. (2025)*
+
+---
+
+## The current pipeline
+
+\`\`\`
+fieldwork (many people)
+    ↓
+ELAN transcription  (.eaf XML)
+    ↓
+expert revision + pseudonymization  (one person)
+    ↓
+linearized exports  (Jefferson .txt, orthographic .txt, NoSketchEngine .vert)
+\`\`\`
+
+**Problem**: the pipeline is a *one-way street*
+
+---
+
+## What an .eaf file looks like
+
+\`\`\`xml
+<ANNOTATION>
+  <ALIGNABLE_ANNOTATION ANNOTATION_ID="a42"
+    TIME_SLOT1="ts103" TIME_SLOT2="ts104">
+    <ANNOTATION_VALUE>
+      e quindi stu[di: pittura?
+    </ANNOTATION_VALUE>
+  </ALIGNABLE_ANNOTATION>
+</ANNOTATION>
+\`\`\`
+
+- Textual XML — readable only through ELAN
+- No clear unit descriptions
+- Additional annotation layers are **external or tool-dependent**
+- Difficult to process at scale with standard NLP pipelines
+
+---
+
+## What goes wrong without version control
+
+| Problem | Consequence |
+|---|---|
+| Opaque pipeline | Cannot retrace annotation decisions |
+| Non-reversible edits | Ad-hoc choices crystallize permanently |
+| Single expert bottleneck | Knowledge locked in one person |
+| No adjudication trail | Inter-annotator disagreement invisible |
+| Static releases | Errors cannot be corrected incrementally |
+
+---
+
+## The standard of practice landscape
+
+Spoken language research is characterised **not by a lack of standards, but by the coexistence of partially incompatible ones**, each optimised for a specific stage of the data lifecycle.
+
+| Format | Strength | Limitation |
+|---|---|---|
+| ELAN / .eaf | Time alignment, interactional detail | Tool-dependent, hard to diff |
+| CHAT | Transcription conventions | Not designed for large-scale annotation |
+| TEI-ISO 24624 | Exchange and preservation | Rarely used as working format |
+| CoNLL-U | NLP pipelines, UD treebanks | Loses interactional structure |
+
+---
+
+## FAIR data vs FAIR processes
+
+> "Interoperability is not achieved through adherence to formats and standards, but through the **alignment of curatorial practices**."
+>
+> — Pannitto & Mauri (2025)
+
+- **FAIR** principles (Findable, Accessible, Interoperable, Reusable) are usually applied to *data products*
+- But for living corpora, what matters is whether the **process** is FAIR
+- A static release can be FAIR; an evolving corpus needs FAIR *workflows*
+
+---
+
+## Corpora as living artefacts
+
+> "Dataset curation increasingly resembles a form of **continuous development**, rather than a linear production pipeline culminating in a static release."
+>
+> — Pannitto & Mauri (2025)
+
+New data are added · Errors are corrected · Formats evolve · New reuse scenarios emerge
+
+→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself
+
+---
+
+## The DevOps analogy
+
+| Software development | Corpus development |
+|---|---|
+| Codebase | Annotated corpus |
+| Feature branch | Annotator's working copy |
+| Code review | Annotation adjudication |
+| CI/CD pipeline | Validation + format conversion scripts |
+| Release tag | Corpus version (e.g. v1.1.0) |
+| Issue tracker | Annotation guideline discussion |
+
+*Steiner (2017) — "A DevOps manifesto for speech corpus management"*
+
+---
+
+## What we want
+
+A workflow that is:
+
+- **Transparent** — full record of every annotation decision
+- **Efficient** — automated validation and conversion
+- **Consistent** — schema enforcement before merge
+- **Participatory** — open to community contributions and corrections
+- **Reversible** — any change can be traced and undone
+
+→ This is exactly what **Git** and **GitHub** were built for
+
+---
+
+## Part 1 — Summary
+
+- Spoken corpora are multilayer, multi-person, multi-tool artefacts
+- Current pipelines are opaque, hard to scale, and difficult to revise
+- The challenge is not data formats — it is *curatorial practices*
+- We need DevOps-inspired workflows: continuous development, version control, peer review
+- **Part 2** will introduce Git and GitHub, and map each concept to corpus work
+
+---
+
+*References*
+
+- Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.
+- Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.
+- Lehmann, C. (2004). Data in linguistics. *The Linguistic Review*.
+- Linell, P. (2019). The written language bias 40 years after. *Language Sciences*.
+- Mauri et al. (2019). KIParla corpus: a new resource for spoken Italian. *CLiC-it*.
+- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *CLARIN*.
+- Pannitto et al. (2025). Introducing KIParla forest. *DepLing / SyntaxFest*.
+- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.`,
+
+'section2.md': `# Git & GitHub: core concepts
+
+**Summer School Lab · Part 2 of 4**
+Dr. Ludovica Pannitto — Università di Bologna
+
+---
+
+## From the problem to the tool
+
+In Part 1 we established that spoken corpus pipelines suffer from:
+
+- Opacity — decisions are not recorded
+- Irreversibility — changes cannot be undone safely
+- Bottlenecks — knowledge concentrated in one person
+- Static releases — errors persist across versions
+
+**Part 2** introduces the toolbox that addresses all four problems at once.
+
+---
+
+## What is a version control system?
+
+A **Version Control System (VCS)** records changes to a file repository over time.
+
+It allows a team to:
+
+- Track *who* changed *what* and *when*
+- Compare any two states of the project
+- Revert to any previous state
+- Work in parallel without conflicts
+
+> Version control is standard practice in software engineering.
+> It is still underused in linguistic annotation — despite the fact that **annotation is a form of collaborative software development**.
+
+---
+
+## Git: the most widely used VCS
+
+**Git** is a distributed version control system. Every contributor has a full copy of the repository history.
+
+Key properties:
+- **Free and open source**
+- Works entirely on the command line — but has many GUI frontends
+- Designed for plain text files → ideal for CoNLL-U, TSV, XML, Markdown
+- Does not require a server — repositories live on your machine
+- Integrates with hosting platforms: GitHub, GitLab, Codeberg
+
+*Created by Linus Torvalds in 2005 for Linux kernel development*
+
+---
+
+## GitHub: Git with collaboration superpowers
+
+**GitHub** is a web-based hosting service for Git repositories.
+
+Git provides version control. GitHub adds:
+
+| Git (local) | GitHub (web platform) |
+|---|---|
+| Commit history | Visual diff viewer |
+| Branches | Pull requests |
+| Merge | Code review interface |
+| Tags | Releases |
+| Hooks | GitHub Actions (CI/CD) |
+| — | Issues (discussion threads) |
+| — | Community forks |
+
+*All of this is free for public repositories — including academic projects.*
+
+---
+
+## The five concepts you need
+
+Everything in the Git/GitHub workflow reduces to five ideas:
+
+1. **Repository** — the project and its full history
+2. **Commit** — a timestamped snapshot with a message
+3. **Branch** — a parallel working copy
+4. **Pull request** — a proposal to merge, with review
+5. **Action** — an automated script triggered by events
+
+We will map each one to corpus annotation.
+
+---
+
+## Concept 1: Repository
+
+A **repository** (repo) is a directory whose full history of changes is tracked by Git.
+
+\`\`\`
+my-corpus/
+├── annotations/
+│   ├── BOA1010.conllu
+│   └── PSB054.conllu
+├── scripts/
+│   ├── validate.py
+│   └── convert_to_conllu.py
+├── metadata/
+│   └── speakers.tsv
+└── README.md
+\`\`\`
+
+The repo stores: all annotation files · all processing scripts · all metadata and documentation · the complete record of every change ever made
+
+---
+
+## Concept 2: Commit
+
+A **commit** records the state of one or more files at a specific point in time.
+
+\`\`\`bash
+git add annotations/BOA1010.conllu
+git commit -m "Add UPOS tags for BOA1010, tokens 1-45"
+\`\`\`
+
+Each commit has:
+- A **unique hash** (e.g. \`a3f9c12\`) — an immutable identifier
+- A **message** — the annotation rationale, in plain language
+- A **diff** — exactly which lines changed
+- **Author** and **timestamp**
+
+→ The commit message *is* the annotation justification. It lives permanently in the history.
+
+---
+
+## What a diff looks like
+
+\`\`\`diff
+# sent_id = BOA1010-003
+# text = e quindi studi: pittura?
+
+-1  e      _    _    _    _  0  root  _  _
+-2  quindi _    _    _    _  0  root  _  _
++1  e      e    CCONJ _   _  3  cc    _  _
++2  quindi quindi ADV _   _  3  advmod _  _
+ 3  studi  studiare VERB _  _  0  root  _  _
+\`\`\`
+
+Lines prefixed \`-\` were removed · lines prefixed \`+\` were added
+
+→ The diff is a **human-readable record of every annotation decision**
+
+---
+
+## Concept 3: Branch
+
+A **branch** is a parallel instance of the repository.
+
+\`\`\`
+main branch (gold annotations, always valid)
+    │
+    ├── annotator/BOA1010        ← Maria's working copy
+    ├── annotator/PSB054         ← Giulio's working copy
+    └── fix/overlap-tokens       ← bug fix in progress
+\`\`\`
+
+Rules:
+- \`main\` is always in a valid, releasable state
+- Annotators work on their own branch — **nothing they do affects main**
+- When work is ready, it is *proposed* for merging via a pull request
+
+→ Parallel annotation without conflicts
+
+---
+
+## Concept 4: Pull request
+
+A **pull request (PR)** is a proposal to merge a branch into \`main\`.
+
+It is also a **collaborative space**:
+
+1. Annotator opens a PR: *"I've annotated BOA1010, please review"*
+2. Manager sees a visual diff of every changed line
+3. Manager (or automated action) checks validation output
+4. Discussion happens in threaded comments, **permanently recorded**
+5. Manager either approves → merge, or requests changes → annotator revises
+
+> The PR thread is the adjudication record. Every decision, every disagreement, every resolved ambiguity — preserved forever, publicly auditable.
+
+---
+
+## A pull request in practice
+
+\`\`\`
+PR #14 — Annotate BOA1010 tokens 1-45
+Opened by: m.rossi · Branch: annotator/BOA1010
+
+  ✓ Validation passed (validate.py)
+  ✓ Visualization rendered (BOA1010-tree.pdf)
+
+  Files changed: 1   +47 lines   -3 lines
+
+  ── Review comment (g.bianchi, manager) ──────────────────
+  Token 2 "quindi": I'd argue SCONJ not ADV here.
+  See guideline §4.2. What do you think?
+
+  ── Reply (m.rossi, annotator) ───────────────────────────
+  You're right — checking §4.2. Will fix in next commit.
+
+  [2 commits] [Approved] [Merged into main]
+\`\`\`
+
+---
+
+## Concept 5: GitHub Actions
+
+A **GitHub Action** is a script that runs automatically when a repository event occurs.
+
+\`\`\`yaml
+# .github/workflows/validate.yml
+name: Validate CoNLL-U
+on: [push, pull_request]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python scripts/validate.py annotations/
+\`\`\`
+
+Triggered on every commit or PR — no manual steps needed.
+
+---
+
+## Three actions for annotation workflows
+
+| Action | Triggered by | What it does |
+|---|---|---|
+| **Validate** | Every commit | Checks annotation schema, flags malformed tokens |
+| **Visualize** | Every commit | Renders annotation as a readable PDF/SVG |
+| **Statistics** | Merge into main | Updates token counts, label distributions, progress |
+
+→ Annotators get *instant feedback* without waiting for a reviewer
+→ Reviewers see a *rendered tree*, not raw CoNLL-U
+→ Project stats are always *up to date*
+
+---
+
+## The full workflow
+
+\`\`\`
+MANAGER                          ANNOTATOR
+──────────────────────────────────────────────────────
+Creates stub files on main
+  └── BOA1010.conllu (pre-tokenized)
+                                 Creates working branch
+                                   annotator/BOA1010
+                                 Fills in annotations
+                                 git commit → Actions fire
+                                   ✓ validate
+                                   ✓ visualize
+                                 Opens pull request
+Reviews diff + rendered tree
+Leaves comments if needed
+                                 Revises (new commits)
+Approves → Merge
+  └── statistics Action fires
+      └── main updated
+\`\`\`
+
+*Waldon & Schneider (2025)*
+
+---
+
+## Already in use: Universal Dependencies
+
+**Universal Dependencies** (UD) is the largest multilingual treebank collection in existence — 100+ languages, maintained by a global community.
+
+UD uses GitHub for:
+- Hosting all treebank repositories
+- Discussing annotation guidelines (Issues)
+- Tracking errors and corrections (Issues + PRs)
+- Releasing versioned datasets (GitHub Releases + Zenodo)
+
+> \`github.com/UniversalDependencies\` — 200+ repositories, thousands of contributors
+
+→ The infrastructure already exists. We are not proposing something new — we are proposing **applying it to spoken corpus work**.
+
+---
+
+## What about the learning curve?
+
+Annotators unfamiliar with Git face a real barrier. Mitigation strategies:
+
+| Challenge | Solution |
+|---|---|
+| Command line is intimidating | GitHub web editor — edit and commit from the browser |
+| Branch/merge concepts unclear | Visual tools: GitHub Desktop, VS Code Git panel |
+| YAML for Actions is complex | Manager writes Actions once; annotators never touch them |
+| Fear of breaking things | Branches protect \`main\` — mistakes stay local |
+
+> The goal is not to turn linguists into software engineers.
+> The goal is to give annotation projects **the same reliability guarantees** that software projects have.
+
+---
+
+## Part 2 — Summary
+
+- A **repository** stores all files and their complete history
+- A **commit** is a timestamped, labelled snapshot — the annotation justification
+- A **branch** lets annotators work safely in parallel
+- A **pull request** is the adjudication interface — discussion, review, merge
+- **Actions** automate validation, visualization, and statistics
+- The workflow is already proven at scale in Universal Dependencies
+- **Part 3** will re-examine these concepts in the specific context of spoken corpus data: binary audio, GDPR, multilayer formats, and the pivot architecture
+
+---
+
+*References*
+
+- de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
+- Palmer, M. & Xue, N. (2010). Linguistic annotation. Chapter 10.
+- San, N. (2016). Using version control for a reproducible workflow in acoustic phonetics. *SST2016*.
+- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
+- Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.`,
+
+'section3.md': `# Git e i corpora parlati: il caso specifico
+
+**Summer School Lab · Part 3 of 4**
+Dr. Ludovica Pannitto — Università di Bologna
+
+---
+
+## Da Part 2 a Part 3
+
+In Part 2 abbiamo visto come Git e GitHub funzionano in astratto.
+
+**Part 3** affronta il problema concreto: applicare queste pratiche a corpora del parlato, che pongono sfide specifiche che i treebank di testo scritto non hanno.
+
+- File audio binari e di grandi dimensioni
+- Vincoli GDPR sulla diffusione dei dati
+- Formati parzialmente incompatibili tra strumenti diversi
+- Annotazioni stratificate che non possono essere separate
+
+La soluzione è progettare il formato dei dati affinché sia *diff-friendly* fin dall'inizio.
+
+---
+
+## Il problema dei file audio in Git
+
+Git è ottimizzato per file di testo a righe brevi. I file audio sono:
+
+- **Binari** — nessun diff leggibile è possibile
+- **Grandi** — decine o centinaia di MB per conversazione
+- **Quasi immutabili** — registrati una volta, raramente modificati
+
+> "Speech data is inefficient to store and transfer with SCM operations, and meaningless to compare at the binary level."
+>
+> — Steiner (2017)
+
+→ I file audio **non vanno tracciati in Git** direttamente
+
+---
+
+## Strategie per i file audio
+
+| Approccio | Come funziona | Quando usarlo |
+|---|---|---|
+| **Git LFS** | Puntatori in repo, file in storage separato | Audio accessibili via GitHub |
+| **git-annex** | Traccia hash, recupera da remoti multipli | Archivi distribuiti |
+| **Storage esterno** | Audio su server/CLARIN, URL in metadata | Corpus già depositato |
+| **Esclusione da \`.gitignore\`** | Audio non tracciati, solo testo in repo | Sviluppo locale |
+
+**Raccomandazione pratica:**
+
+\`\`\`
+# .gitignore
+audio/raw/
+audio/pseudonymized/
+*.wav
+*.flac
+\`\`\`
+
+Il repo traccia gli *script di pseudonimizzazione* e la *documentazione del processo*, non i file audio stessi.
+
+---
+
+## GDPR: cosa può stare in un repo pubblico
+
+I dati del parlato spontaneo contengono informazioni personali identificabili (PII).
+
+\`\`\`
+audio/raw/BOA1010.wav           ← MAI in repo pubblico
+audio/pseudonymized/BOA1010.wav ← accesso controllato
+transcriptions/BOA1010.eaf      ← richiede revisione
+pivot/BOA1010.tsv               ← richiede pseudonimizzazione
+metadata/speakers.tsv           ← NO nomi, solo codici
+\`\`\`
+
+**Cosa può stare nel repo pubblico:**
+- Trascrizioni *dopo* pseudonimizzazione completa
+- Script del pipeline di pseudonimizzazione
+- Metadati anonimi (codici parlante, durata, tipo di testo)
+- Schemi di annotazione, linee guida, documentazione
+- GitHub Actions per validazione e conversione
+
+**Repo privato → repo pubblico** è il modello di rilascio.
+
+---
+
+## Il layering problem e la necessità di un pivot
+
+I formati esistenti sono ottimizzati per fasi diverse del ciclo di vita:
+
+\`\`\`
+ELAN / .eaf      → allineamento temporale, analisi interazionale
+                   ma: XML monolitico, difficile da diff
+CHAT             → convenzioni di trascrizione
+                   ma: non progettato per annotazione NLP su larga scala
+TEI-ISO 24624    → scambio e preservazione
+                   ma: raramente usato come formato operativo
+CoNLL-U          → pipeline NLP, treebank UD
+                   ma: perde struttura interazionale
+\`\`\`
+
+Nessuno di questi formati è adatto come **rappresentazione di lavoro mantenuta in Git**.
+
+→ Serve un *pivot format* che soddisfi contemporaneamente tutti i requisiti
+
+---
+
+## Requisiti di un formato pivot per Git
+
+Un formato adatto a essere versionato in Git deve essere:
+
+- **Line-oriented** — ogni riga è un'unità atomica, i diff sono leggibili
+- **Tab-separated plain text** — nessun tool proprietario per aprirlo
+- **Un token per riga** — una modifica di annotazione = una riga cambiata
+- **Auto-documentante** — le intestazioni descrivono ogni colonna
+- **Estensibile per colonne** — nuovi layer si aggiungono senza modificare l'esistente
+- **Invertibile** — dalla rappresentazione pivot si può ricostruire l'originale
+
+> "The format is designed to support incremental correction and version-controlled maintenance: revisions are localised at the level of token identifiers and propagate deterministically to all derived formats."
+>
+> — Pannitto & Mauri (2025)
+
+---
+
+## Il formato pivot di KIParla: struttura verticale
+
+Un token per riga. Ogni colonna è un layer di annotazione.
+
+\`\`\`
+token_id  speaker  tu_id  form    type        jefferson_feats       align             lemma   upos
+1-1       PSB102   1      ah      linguistic                        AlignBegin=5.12   ah      INTJ
+1-2       PSB102   1      no      linguistic  _                     _                 no      ADV
+1-3       PSB102   1      no      linguistic  Intonation=Rising     _                 no      ADV
+1-4       PSB102   1      no      linguistic  _                     AlignEnd=6.08     no      ADV
+2-1       PSB054   2      e       linguistic  _                     AlignBegin=5.95   e       CCONJ
+2-2       PSB054   2      quindi  linguistic  _                     _                 quindi  ADV
+\`\`\`
+
+Un diff su questo file è immediatamente leggibile da un linguista.
+
+---
+
+## Perché il TSV verticale è diff-friendly
+
+\`\`\`diff
+# Correzione del lemma per token 1-3
+
+-1-3  PSB102  1  no  linguistic  Intonation=Rising  _  no    ADV
++1-3  PSB102  1  no  linguistic  Intonation=Rising  _  no:   ADV
+\`\`\`
+
+- La modifica riguarda **esattamente una riga**
+- Il revisore vede **cosa è cambiato e perché** (nel messaggio di commit)
+- La storia del file mostra **tutte le decisioni di annotazione nel tempo**
+- Aggiungere un nuovo layer = aggiungere una colonna
+
+Confrontate con un \`.eaf\` XML: anche una piccola modifica produce centinaia di righe di diff illeggibili.
+
+---
+
+## Architettura a tre livelli
+
+Il pivot KIParla formalizza tre livelli espliciti:
+
+\`\`\`
+Livello 1: TU (Transcription Unit)
+  └── segmento attribuito a un parlante, ancorato temporalmente
+        validazione: intervallo coerente (end > start), contenuto non vuoto
+
+Livello 2: Span
+  └── fenomeno Jefferson che si estende su sequenze di testo
+        [sovrapposizione], °volume basso°, >velocità alta<
+        validazione: delimitatori bilanciati, ancorati a token esistenti
+
+Livello 3: Token
+  └── unità lessicale o para-verbale, localmente ben formata
+        validazione: inventario caratteri, tipo categorico, feature prosodiche
+\`\`\`
+
+Ogni livello ha **criteri di validazione espliciti** → GitHub Action li controlla a ogni commit.
+
+---
+
+## Dall'EAF al pivot: il workflow di curatela
+
+\`\`\`
+ELAN (.eaf)
+    │
+    ▼  pipeline di validazione (Python)
+    │   ├── validazione TU (coerenza temporale)
+    │   ├── validazione Span (bilanciamento delimitatori)
+    │   └── validazione Token (inventario caratteri, tipi)
+    │
+    ▼  formato pivot (.tsv)          ← mantenuto in Git
+    │
+    ├──► CoNLL-U (.conllu)           ← derivato riproducibile
+    ├──► ELAN riesportato (.eaf)     ← derivato riproducibile
+    ├──► NoSketchEngine (.vert)      ← derivato riproducibile
+    └──► KIParla Forest (treebank)   ← derivato riproducibile
+\`\`\`
+
+I formati derivati vengono *rigenerati* dal pivot — non mantenuti separatamente.
+
+---
+
+## Cosa va in Git e cosa no: riepilogo
+
+| Artefatto | In Git? | Note |
+|---|---|---|
+| Pivot TSV pseudonimizzato | ✓ sì | Cuore del repo |
+| Script di validazione | ✓ sì | Parte del pipeline |
+| Script di conversione | ✓ sì | Genera i derivati |
+| GitHub Actions (YAML) | ✓ sì | Automazione CI |
+| Linee guida di annotazione | ✓ sì | Documentazione viva |
+| Metadati anonimi | ✓ sì | Codici parlante, durata |
+| File audio (.wav, .flac) | ✗ no | Git LFS o storage esterno |
+| EAF originali non pseudonimizzati | ✗ no | Repo privato o archivio CLARIN |
+| Nomi, indirizzi, dati personali | ✗ mai | Vincolo GDPR |
+
+---
+
+## Il valore del tracciamento della storia
+
+Con Git, la storia del corpus è un artefatto di ricerca in sé.
+
+\`\`\`bash
+# Chi ha modificato il token 254-1 e quando?
+git log --all -S "254-1" -- pivot/BOA1010.tsv
+
+# Come era annotato questo token sei mesi fa?
+git show HEAD~180:pivot/BOA1010.tsv | grep "^254-1"
+
+# Quali token sono stati corretti dopo la prima release?
+git diff v1.0.0..v1.1.0 -- pivot/
+\`\`\`
+
+→ La storia dei commit **è** la documentazione delle decisioni curatoriali.
+
+---
+
+## Versioni e rilasci: corpora come software
+
+Git supporta un modello di rilascio esplicito con *tag*:
+
+\`\`\`bash
+# Creare una versione
+git tag -a v1.1.0 -m "Add ParlaBO module; fix overlap encoding in KIP"
+git push origin v1.1.0
+\`\`\`
+
+Su GitHub, un tag crea automaticamente una **Release** con:
+- Changelog generato dai commit
+- Archivio scaricabile del corpus a quella versione
+- Collegamento a Zenodo per DOI permanente
+
+→ Ogni versione del corpus è **citabile**, **riproducibile** e **confrontabile** con le precedenti.
+
+---
+
+## Part 3 — Riepilogo
+
+- I file audio **non appartengono** a Git: usare Git LFS, storage esterno, o \`.gitignore\`
+- I vincoli GDPR definiscono una netta separazione tra repo privato e repo pubblico
+- Il **formato pivot TSV verticale** è la chiave: un token per riga, diff leggibili, estensibile per colonne
+- L'architettura a tre livelli (TU → Span → Token) permette validazione automatica a ogni commit
+- I formati derivati si rigenerano dal pivot — non si mantengono separatamente
+- La storia Git **è** la documentazione delle decisioni curatoriali
+- **Part 4** metterà in pratica tutto questo con un demo su un repo reale
+
+---
+
+*Riferimenti*
+
+- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *CLARIN*.
+- Pannitto et al. (2025). Introducing KIParla Forest. *DepLing / SyntaxFest*.
+- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
+- Rosenberg, A. (2012). Rethinking the corpus: moving towards dynamic linguistic resources. *Interspeech*.
+- Dumitru et al. (2024). Version control for speech corpora. *KONVENS*.
+- Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.`,
+
+'section4.md': `# Hands-on: building the workflow
+
+**Summer School Lab · Part 4 of 4**
+Dr. Ludovica Pannitto — Università di Bologna
+
+---
+
+## What we will build today
+
+Two repositories on GitHub:
+
+\`\`\`
+git-spoken-corpus-demo/          git-spoken-corpus-slides/
+├── .github/workflows/           ├── index.html
+│   ├── validate.yml             ├── section1.md  …  section4.md
+│   └── stats.yml                └── md2slides.py
+├── annotations/
+│   ├── BOA1010.stub.tsv   ← stub (pre-tokenized, no UPOS)
+│   └── PSB054.stub.tsv    ← stub
+├── scripts/
+│   ├── validate.py
+│   └── stats.py
+├── guidelines/
+│   └── ANNOTATION.md
+├── .gitignore
+└── README.md
+\`\`\`
+
+By the end of the session you will have gone through a complete annotator→manager cycle on a real spoken Italian excerpt.
+
+---
+
+## Step 0: prerequisites
+
+Before we start, make sure you have:
+
+- A **GitHub account** (free — \`github.com/signup\`)
+- **Git** installed locally (\`git --version\`)
+- A text editor that shows TSV files cleanly (VS Code recommended)
+
+**Alternative: no local setup needed.**
+GitHub's web editor lets you edit and commit files directly from the browser. We will use this path as the primary route today.
+
+\`\`\`bash
+# Optional: verify local git
+git --version          # should print git version 2.x.x
+git config --global user.name  "Your Name"
+git config --global user.email "you@example.com"
+\`\`\`
+
+---
+
+## Step 1 (manager): fork and inspect the repo
+
+1. Go to \`github.com/your-username/git-spoken-corpus-demo\`
+2. Click **Fork** → creates your own copy
+3. Explore the repository structure:
+   - \`annotations/\` — stub TSV files with pre-tokenized spoken Italian
+   - \`scripts/validate.py\` — the validation script
+   - \`.github/workflows/validate.yml\` — the Action that fires on every push
+   - \`guidelines/ANNOTATION.md\` — annotation guidelines
+
+**Read a stub file.**
+Open \`annotations/BOA1010.stub.tsv\`. You will see:
+
+\`\`\`
+token_id  speaker  form    type        lemma  upos
+1-1       PSB102   e       linguistic  _      _
+1-2       PSB102   quindi  linguistic  _      _
+1-3       PSB102   studi   linguistic  _      _
+\`\`\`
+
+\`lemma\` and \`upos\` columns are \`_\` — your job is to fill them in.
+
+---
+
+## Step 2 (annotator): create a working branch
+
+### From the browser (recommended)
+
+1. On the repo page, click the branch dropdown (shows \`main\`)
+2. Type \`annotator/BOA1010\` → click **Create branch**
+3. You are now on your working branch — \`main\` is untouched
+
+### From the command line
+
+\`\`\`bash
+git clone https://github.com/your-username/git-spoken-corpus-demo
+cd git-spoken-corpus-demo
+git checkout -b annotator/BOA1010
+\`\`\`
+
+---
+
+## Step 3 (annotator): fill in the stub
+
+Open \`annotations/BOA1010.stub.tsv\` in the editor and fill in \`lemma\` and \`upos\` for each token.
+
+Use [Universal Dependencies UPOS tags](https://universaldependencies.org/u/pos/):
+
+\`\`\`
+token_id  speaker  form    type        lemma   upos
+1-1       PSB102   e       linguistic  e       CCONJ
+1-2       PSB102   quindi  linguistic  quindi  ADV
+1-3       PSB102   studi   linguistic  studiare VERB
+1-4       PSB102   pittura linguistic  pittura  NOUN
+\`\`\`
+
+**Tip:** check the guidelines in \`guidelines/ANNOTATION.md\` before annotating — especially the section on spoken-language specific cases (discourse markers, false starts, filled pauses).
+
+---
+
+## Step 4 (annotator): commit with a meaningful message
+
+### From the browser
+
+1. Scroll to **Commit changes** at the bottom of the editor
+2. Write a descriptive commit message:
+
+\`\`\`
+Add UPOS tags for BOA1010 (tokens 1-1 to 1-4)
+
+Token 1-3 (studi): annotated as VERB (studiare), not NOUN.
+The form is 2nd person singular present — context confirms
+verbal reading (see turn PSB054 preceding).
+\`\`\`
+
+3. Make sure **Commit directly to \`annotator/BOA1010\`** is selected
+4. Click **Commit changes**
+
+The GitHub Action fires immediately — check the **Actions** tab.
+
+---
+
+## Step 5: watch the Action run
+
+After the commit, go to the **Actions** tab on GitHub.
+
+You should see a workflow run called \`Validate TSV\`:
+
+\`\`\`
+✓  Validate TSV
+   Triggered by: push to annotator/BOA1010
+
+   Jobs:
+   ✓  validate (2s)
+      → Running validate.py on annotations/BOA1010.stub.tsv
+      → All 4 tokens: valid UPOS tags ✓
+      → No missing lemmas ✓
+      → Token IDs sequential ✓
+\`\`\`
+
+If the Action **fails**, read the error output — it tells you exactly which row has the problem.
+
+---
+
+## Step 6 (annotator): open a pull request
+
+1. Go to the repo page → click **Compare & pull request**  
+   (GitHub shows this banner automatically after a push)
+2. Set:
+   - **base:** \`main\`
+   - **compare:** \`annotator/BOA1010\`
+3. Write a PR description:
+
+\`\`\`
+Annotate BOA1010 (4 tokens)
+
+UPOS tags added for all tokens. One non-obvious case:
+token 1-3 (studi) — annotated VERB not NOUN, see commit
+message for reasoning. Please check against §3.2 of the
+guidelines.
+
+Checklist:
+✓ Validation passed
+✓ All lemmas filled
+✓ Commit message explains each decision
+\`\`\`
+
+4. Click **Create pull request**
+
+---
+
+## Step 7 (manager): review the pull request
+
+As manager, open the PR. You will see:
+
+- The **Files changed** tab — a diff of every modified line
+- The **Checks** section — validation result from the Action
+- The **Commits** tab — the full commit history with messages
+
+**Leave a review comment** on a specific line:
+
+> Token 1-2 (\`quindi\`): ADV is correct here, but note that  
+> in our corpus \`quindi\` often functions as a discourse  
+> connector rather than a pure adverb. See guideline §3.4.  
+> For now ADV is fine — worth flagging for future discussion.
+
+This comment is **permanently recorded** in the PR thread.
+
+---
+
+## Step 8 (annotator): revise if needed
+
+If the manager requests changes:
+
+1. Go back to \`annotations/BOA1010.stub.tsv\` on your branch
+2. Make the edit
+3. Commit again — the Action re-runs automatically
+4. Reply to the comment in the PR thread
+
+\`\`\`
+# New commit message
+Revise token 1-2: add discourse marker note in misc column
+
+Following reviewer comment (§3.4): kept UPOS=ADV but added
+Discourse=Yes in the MISC column to flag the pragmatic use.
+\`\`\`
+
+The PR thread now has **two commits** and a resolved discussion — a complete adjudication record.
+
+---
+
+## Step 9 (manager): approve and merge
+
+Once satisfied:
+
+1. Click **Review changes** → **Approve**
+2. Click **Merge pull request** → **Confirm merge**
+
+The \`stats\` Action fires on merge:
+
+\`\`\`
+✓  Update corpus statistics
+   Tokens annotated:   4
+   Total in corpus:    4  (0% remaining)
+   UPOS distribution:  CCONJ=1  ADV=1  VERB=1  NOUN=1
+   → stats/progress.json updated and committed to main
+\`\`\`
+
+The \`main\` branch now has the approved annotation. Your branch can be deleted.
+
+---
+
+## Tour: what the repo looks like after one full cycle
+
+\`\`\`
+main branch
+├── annotations/
+│   └── BOA1010.stub.tsv   ← now fully annotated (merged)
+├── stats/
+│   └── progress.json      ← updated by stats Action
+└── (commit history)
+    ├── a3f9c12  "Initial stub: BOA1010 (manager)"
+    ├── 7b2e441  "Add UPOS tags for BOA1010 (tokens 1-1 to 1-4)"
+    ├── 9d1f308  "Revise token 1-2: add discourse marker note"
+    └── 4c8a017  "Merge pull request #1: Annotate BOA1010"
+\`\`\`
+
+Every decision is traceable. The PR thread holds the reasoning. The Actions log proves the annotation was validated before merge.
+
+---
+
+## Exercise: annotate PSB054
+
+Now try it yourself with the second stub file.
+
+1. Create branch \`annotator/PSB054\`
+2. Open \`annotations/PSB054.stub.tsv\`
+3. Fill in \`lemma\` and \`upos\`
+4. Commit with a descriptive message
+5. Open a PR against \`main\`
+6. Exchange with a neighbour: review each other's PR
+7. Merge
+
+**Discussion questions while you work:**
+
+- Where did the validation Action catch an error?
+- What would you add to the guidelines based on what you saw?
+- How would you structure the repo for a 2M-token corpus with 10 annotators?
+
+---
+
+## Using the GitHub web editor: zero setup required
+
+Everything we did is possible entirely from the browser:
+
+| Action | How |
+|---|---|
+| Create a branch | Branch dropdown → type name → Enter |
+| Edit a file | Click pencil icon on any file |
+| Commit | Scroll to "Commit changes" at bottom of editor |
+| Open a PR | "Compare & pull request" banner after push |
+| Review a PR | Files changed tab → click \`+\` on any line |
+| Merge | "Merge pull request" button |
+
+No \`git clone\`, no terminal. Useful for linguists who are new to version control — they can start contributing immediately.
+
+---
+
+## The two repos: how they connect
+
+\`\`\`
+git-spoken-corpus-slides/         git-spoken-corpus-demo/
+  ← presentation source              ← live annotation workflow
+  ← rendered via GitHub Pages        ← Actions, stubs, validation
+  ← md2slides.py builds HTML         ← community can fork + annotate
+
+Both repos link to each other in their README.
+The slides explain the demo. The demo instantiates the slides.
+\`\`\`
+
+**Publishing the slides:**
+
+\`\`\`bash
+# In git-spoken-corpus-slides/
+python3 md2slides.py          # regenerate index.html from all sections
+git add index.html
+git commit -m "Rebuild slides after section 4"
+git push
+# → GitHub Pages serves the updated presentation immediately
+\`\`\`
+
+---
+
+## Open questions and next steps
+
+Things we did not cover — threads worth following:
+
+- **Parallel annotation:** two annotators on the same file → branching model for disagreement → inter-annotator agreement computed from PR diffs
+- **Integration with annotation tools:** GitHub Apps API lets ELAN or Inception commit directly to a branch without touching the command line
+- **Incremental releases:** \`git tag v1.0.0\` + Zenodo webhook → automatic DOI on every tag
+- **Scaling to speech:** combining Git (text layers) + Zenodo/CLARIN (audio) + GitHub Actions (conversion pipeline) into a single reproducible build
+
+> "By embracing version control practices and technologies, we can foster more rigorous, collaborative, and sustainable approaches to linguistic annotation."
+>
+> — Waldon & Schneider (2025)
+
+---
+
+## Course summary
+
+| Part | Core idea |
+|---|---|
+| 1 · Motivation | Spoken corpora are living, multilayer artefacts — current workflows are fragile |
+| 2 · Git & GitHub | Five concepts: repo, commit, branch, PR, Action |
+| 3 · Spoken data | Pivot format + GDPR + audio strategy = diff-friendly corpus |
+| 4 · Hands-on | The full annotator → manager cycle on real spoken Italian data |
+
+**The two repos:**
+- \`git-spoken-corpus-slides\` — these slides, GitHub Pages
+- \`git-spoken-corpus-demo\` — the toy corpus, try it anytime
+
+---
+
+## Thank you
+
+Dr. Ludovica Pannitto  
+Alma Mater Studiorum — Università di Bologna  
+\`ludovica.pannitto@unibo.it\`
+
+*KIParla corpus:* \`www.kiparla.it\`  
+*KIParla Forest:* Pannitto et al. (2025), DepLing/SyntaxFest  
+*GitHub workflow:* Waldon & Schneider (2025), LAW XIX
+
+---
+
+*References*
+
+- Pannitto, L. & Mauri, C. (2025). Reuse by design. *CLARIN*.
+- Pannitto et al. (2025). Introducing KIParla Forest. *DepLing / SyntaxFest*.
+- Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.
+- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
+- de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
+`
+};
+</script>
+</body>
+</html>
