@@ -26,7 +26,7 @@ BOA1010_FINAL_USE_THIS_ONE_v2_corrected_LP.eaf
 
 - Which is the authoritative version?
 - Who made the `_corrected` changes, and why?
-- Can you go back to before the last revision round?
+- Do you know exactly what changed from previous version to the last?
 - What happens when two annotators work on different copies?
 
 This is the default state of most annotation projects without version control.
@@ -76,13 +76,13 @@ It allows a team to:
 
 The closest familiar tool is *Track Changes* in word processors. It fails for annotation work because:
 
-| Limitation | Consequence for annotation |
-|---|---|
-| History is **lost on acceptance** | Authorship and rationale vanish once changes are merged |
-| No **parallel branches** | Collaborators must work sequentially or merge manually |
-| **Not plain-text friendly** | Does not work with CoNLL-U, TSV, XML — the formats we actually use |
-| No **programmatic access** | You cannot run a validation script or trigger a conversion |
-| No **conflict detection** | Two people editing the same span silently overwrite each other |
+| Limitation                        | Consequence for annotation                                         |
+| --------------------------------- | ------------------------------------------------------------------ |
+| History is **lost on acceptance** | Authorship and rationale vanish once changes are merged            |
+| No **parallel branches**          | Collaborators must work sequentially or merge manually             |
+| **Not plain-text friendly**       | Does not work with CoNLL-U, TSV, XML — the formats we actually use |
+| No **programmatic access**        | You cannot run a validation script or trigger a conversion         |
+| No **conflict detection**         | Two people editing the same span silently overwrite each other     |
 
 > Track Changes is designed for a document that reaches a final state.
 > A corpus is never final — it is a living artefact.
@@ -93,7 +93,8 @@ The closest familiar tool is *Track Changes* in word processors. It fails for an
 
 ## Git: the most widely used VCS
 
-**Git** is a distributed version control system. Every contributor has a full copy of the repository history.
+**Git** is a distributed version control system.
+Every contributor has a full copy of the repository history.
 
 Key properties:
 - **Free and open source**
@@ -108,7 +109,7 @@ Key properties:
 
 ---
 
-## The five concepts you need
+## The five concepts you need -- and we'll go over during this tutorial
 
 Everything in the Git/GitHub workflow reduces to five ideas:
 
@@ -128,12 +129,24 @@ A **repository** (repo) is a directory whose full history of changes is tracked 
 
 ```
 my-corpus/
-├── annotations/
-│   ├── BOA1010.conllu
-│   └── PSB054.conllu
-├── scripts/
+├── eaf/                        ← original ELAN transcriptions
+│   ├── BOA1010.eaf
+│   └── PSB054.eaf
+├── pivot/                      ← maintained TSV representation
+│   ├── BOA1010.tsv
+│   └── PSB054.tsv
+├── derived/                    ← formats generated from the pivot
+│   ├── conllu/
+│   │   ├── BOA1010.conllu
+│   │   └── PSB054.conllu
+│   ├── vert/
+│   │   └── corpus.vert
+│   └── jefferson/
+│       └── BOA1010.txt
+├── scripts/                    ← validation and conversion
 │   ├── validate.py
-│   └── convert_to_conllu.py
+│   ├── eaf_to_pivot.py
+│   └── pivot_to_conllu.py
 ├── metadata/
 │   └── speakers.tsv
 └── README.md
@@ -147,9 +160,36 @@ The repo stores:
 
 ---
 
+## Exercise 1 — Create your first repository
+
+```bash
+# 1. Create a project folder and enter it
+mkdir my-corpus && cd my-corpus
+
+# 2. Initialise a Git repository
+git init
+
+# 3. Check what Git sees
+git status
+
+# 4. Create a README file
+echo "# My corpus" > README.md
+
+# 5. Check status again — notice README is now "untracked"
+git status
+```
+
+**What to observe:**
+- `git init` creates a hidden `.git/` folder — that is the entire history database
+- `git status` reports which files Git knows about and which it does not
+- An untracked file exists on disk but is invisible to Git until you `git add` it
+
+---
+
 ## Local and remote repositories
 
-In a distributed VCS, every collaborator has a **full copy** of the repository. Git distinguishes two kinds:
+In a distributed VCS, every collaborator has a **full copy** of the repository.
+Git distinguishes two kinds:
 
 - **Remote repo** — hosted on a server (GitHub, GitLab, institutional server); the shared reference point for the team
 - **Local repo** — on your personal machine; where you actually do your work
@@ -175,6 +215,36 @@ Each annotator works locally and commits at their own pace. Changes reach the sh
 
 ---
 
+## Exercise 2 — Stage and commit
+
+Continuing from Exercise 1:
+
+```bash
+# 1. Stage the README
+git add README.md
+
+# 2. Check status — README is now "staged"
+git status
+
+# 3. Make your first commit
+git commit -m "Initial commit: add README"
+
+# 4. View the commit log
+git log --oneline
+
+# 5. Edit the README, then check what Git sees
+echo "Spontaneous spoken Italian corpus" >> README.md
+git status
+git diff README.md
+```
+
+**What to observe:**
+- `git diff` shows exactly which lines changed before you stage them
+- `git log` shows the commit hash, author, timestamp, and message
+- After committing, the working directory is "clean" again
+
+---
+
 ## The four states of a file
 
 Every file in a Git repository is in one of four states:
@@ -197,11 +267,11 @@ Every file in a Git repository is in one of four states:
 
 Three areas a file moves through:
 
-| Area | Location | Role |
-|---|---|---|
-| Working directory | `project/` | where you edit |
-| Staging area | `project/.git/index` | what goes into the next commit |
-| Git database | `project/.git/objects` | permanent history |
+| Area              | Location               | Role                           |
+| ----------------- | ---------------------- | ------------------------------ |
+| Working directory | `project/`             | where you edit                 |
+| Staging area      | `project/.git/index`   | what goes into the next commit |
+| Git database      | `project/.git/objects` | permanent history              |
 
 The staging step lets you commit **some** changes from your working directory while leaving others for a later commit — useful when one session touches multiple annotation files but only one is ready for review.
 
@@ -247,6 +317,36 @@ Lines prefixed `-` were removed · lines prefixed `+` were added
 
 ---
 
+## Exercise 3 — Browse the history
+
+```bash
+# 1. Make two more small commits (add files, edit README, anything)
+echo "speaker_id,age,gender" > metadata/speakers.tsv
+git add metadata/speakers.tsv
+git commit -m "Add speakers metadata stub"
+
+# 2. View the full log
+git log --oneline
+
+# 3. See exactly what changed in a specific commit (use your own hash)
+git show a3f9c12
+
+# 4. Go back and look at a past state — without changing anything
+git checkout HEAD~1 -- README.md   # restore previous version of one file
+git diff README.md                 # see what was different
+git checkout HEAD -- README.md     # put the current version back
+
+# 5. Check that you're back to normal
+git status
+```
+
+**What to observe:**
+- `git show <hash>` displays the full diff for any past commit
+- `git checkout <commit> -- <file>` lets you inspect a past version without rewriting history
+- You can always get back: Git does not forget anything
+
+---
+
 ## Concept 3: Branch
 
 A **branch** is a parallel instance of the repository.
@@ -265,6 +365,36 @@ Rules:
 - When work is ready, it is *proposed* for merging via a pull request
 
 → Parallel annotation without conflicts
+
+---
+
+## Exercise 4 — Create and switch branches
+
+```bash
+# 1. Create a new branch for annotation work
+git checkout -b annotator/BOA1010
+
+# 2. Check which branch you are on
+git branch
+
+# 3. Make a change on this branch
+echo "token_id\tspeaker\tform" > pivot/BOA1010.tsv
+git add pivot/BOA1010.tsv
+git commit -m "Add BOA1010 pivot stub"
+
+# 4. Switch back to main — the file you just added is not here
+git checkout main
+ls pivot/
+
+# 5. Switch back to your branch — the file reappears
+git checkout annotator/BOA1010
+ls pivot/
+```
+
+**What to observe:**
+- `git branch` shows all branches; the current one is marked with `*`
+- Switching branches changes the working directory — files appear and disappear
+- `main` is unaffected by anything you do on your branch
 
 ---
 
@@ -358,12 +488,39 @@ Triggered on every commit or PR — no manual steps needed.
 
 ---
 
+## Exercise 5 — Push and open a pull request on GitHub
+
+*This exercise requires a GitHub account and a remote repository.*
+
+```bash
+# 1. Push your branch to GitHub
+git push -u origin annotator/BOA1010
+```
+
+Then in the browser:
+
+1. Go to your repository on GitHub
+2. Click **"Compare & pull request"** (GitHub shows this automatically after a push)
+3. Write a title: `"Add BOA1010 pivot stub"`
+4. In the description, explain what you did and why
+5. Click **"Create pull request"**
+6. Browse the **Files changed** tab — this is what a reviewer sees
+7. Leave a comment on a specific line (click the `+` that appears on hover)
+8. Merge the PR into `main`
+
+**What to observe:**
+- The diff view shows exactly which lines were added or changed
+- Comments are anchored to specific lines and preserved forever
+- After merge, `main` contains your changes and the branch can be deleted
+
+---
+
 ## Three actions for annotation workflows
 
-| Action | Triggered by | What it does |
-|---|---|---|
-| **Validate** | Every commit | Checks annotation schema, flags malformed tokens |
-| **Visualize** | Every commit | Renders annotation as a readable PDF/SVG |
+| Action         | Triggered by    | What it does                                        |
+| -------------- | --------------- | --------------------------------------------------- |
+| **Validate**   | Every commit    | Checks annotation schema, flags malformed tokens    |
+| **Visualize**  | Every commit    | Renders annotation as a readable PDF/SVG            |
 | **Statistics** | Merge into main | Updates token counts, label distributions, progress |
 
 → Annotators get *instant feedback* without waiting for a reviewer
@@ -410,7 +567,26 @@ UD uses GitHub for:
 
 > `github.com/UniversalDependencies` — 200+ repositories, thousands of contributors
 
-→ The infrastructure already exists. We are not proposing something new — we are proposing **applying it to spoken corpus work**.
+
+---
+
+## Monitoring the project: Issues and permalinks
+
+Beyond commits and pull requests, GitHub provides two tools for tracking *what is happening and why*:
+
+**Issues** — a structured discussion thread attached to the repository:
+
+- Report an annotation error found after merge
+- Raise a guideline ambiguity ("should overlap marker go on PKP019 or PKP014?")
+- Track a decision to its resolution, with full comment history
+- Link an issue to the commit or PR that fixed it — closes automatically on merge
+
+**Permalinks** — a permanent URL pointing to a specific line or commit:
+
+- `github.com/.../BOA1010.conllu#L42` → links to token 42 in the current file
+- `github.com/.../blob/<commit-hash>/BOA1010.conllu#L42` → links to that line *as it was at that exact commit*
+
+Together they make the project **auditable**: every annotation decision has a discussion thread; every discussion thread can point to the exact line of data it concerns; every line of data can be traced back to the commit that introduced it.
 
 ---
 
@@ -418,12 +594,12 @@ UD uses GitHub for:
 
 Annotators unfamiliar with Git face a real barrier. Mitigation strategies:
 
-| Challenge | Solution |
-|---|---|
-| Command line is intimidating | GitHub web editor — edit and commit from the browser |
-| Branch/merge concepts unclear | Visual tools: GitHub Desktop, VS Code Git panel |
-| YAML for Actions is complex | Manager writes Actions once; annotators never touch them |
-| Fear of breaking things | Branches protect `main` — mistakes stay local |
+| Challenge                     | Solution                                                 |
+| ----------------------------- | -------------------------------------------------------- |
+| Command line is intimidating  | GitHub web editor — edit and commit from the browser     |
+| Branch/merge concepts unclear | Visual tools: GitHub Desktop, VS Code Git panel          |
+| YAML for Actions is complex   | Manager writes Actions once; annotators never touch them |
+| Fear of breaking things       | Branches protect `main` — mistakes stay local            |
 
 > The goal is not to turn linguists into software engineers.
 > The goal is to give annotation projects **the same reliability guarantees** that software projects have.
@@ -437,6 +613,7 @@ Annotators unfamiliar with Git face a real barrier. Mitigation strategies:
 - A **branch** lets annotators work safely in parallel
 - A **pull request** is the adjudication interface — discussion, review, merge
 - **Actions** automate validation, visualization, and statistics
+- **Issues and permalinks** make the project auditable — every decision has a thread, every thread points to a line
 - The workflow is already proven at scale in Universal Dependencies
 - **Part 3** will re-examine these concepts in the specific context of spoken corpus data: binary audio, GDPR, multilayer formats, and the pivot architecture
 

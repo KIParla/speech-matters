@@ -1,6 +1,7 @@
 # Git as a Collaborative Environment for Multilayer Spoken Resource Development
 
-**Summer School Lab · Part 1 of 4**
+**Speech Matters Spring School**
+
 Dr. Ludovica Pannitto — Università di Bologna
 
 ---
@@ -25,17 +26,19 @@ Dr. Ludovica Pannitto — Università di Bologna
 
 ## The multilayer problem
 
-A spoken corpus is not a text. It is a **stratification of interpretive layers**:
+A spoken corpus is not a text.
+
+It is a **stratification of interpretive layers**:
 
 ```
 raw audio
   └── pseudonymized audio              [GDPR pipeline]
-        └── Jefferson transcription    [ELAN / expert linguist]
-              └── orthographic form    [normalization scripts]
-                    └── morphosyntax   [POS tagger + manual revision]
-                          └── syntax   [UD treebank annotation]
-                                └── speech acts / pragmatics   [manual annotation]
-                                      └── metadata
+   |    └── transcription              [ELAN / expert linguist]
+   |          └── orthographic form    [normalization scripts]
+   |              | └── morphosyntax   [POS tagger + manual revision]
+   |              |       └── syntax   [UD treebank annotation]
+   |              └──────────────── speech acts / pragmatics   [manual annotation]
+   └──────────────────────────────────────────── metadata
 ```
 
 Each layer: different person · different tool · different time
@@ -78,6 +81,14 @@ linearized exports
     └── verticalized .vert           [NoSketchEngine, Sketch Engine]
 ```
 
+**The deeper problem**: many of the derived formats, tools, and pipelines were not designed with spoken interaction in mind.
+They do not model:
+- the **speaker** as a social agent producing situated language
+- the **interactional setting** — who is talking to whom, under what circumstances
+- **spoken-language specifics** — overlap, repair, prosody, turn-taking, disfluency
+
+They were built for monological linear text, then retrofitted for spoken language and interaction.
+
 **Problems with the current pipeline**:
 
 - The pipeline is a *one-way street* — upstream corrections do not propagate to downstream layers or exports
@@ -91,11 +102,15 @@ linearized exports
 
 The linear model treats ELAN as the authoritative source. Every derived format is a dead end — a correction to the source does not reach the outputs, and there is no path back.
 
-**The pivot model** replaces this with a single maintained representation at the centre:
+We argue for the introduction of a **pivot model**, which replaces the pipeline with a single maintained representation at the centre:
 
 ![Pivot architecture: TSV format at centre, derived formats around it with bidirectional conversion](assets/pivot-architecture.svg)
 
-The pivot is a **verticalized, pseudo-tokenized TSV** — one token per row, enriched with lexical, prosodic, interactional, and alignment features. From it, all formats are reproducibly derived by conversion scripts. Crucially, the architecture is **bidirectional**: corrections applied at the pivot level propagate to all derived formats.
+In the case of KIParla, the pivot is a **verticalized, pseudo-tokenized TSV** — one token per row, enriched with lexical, prosodic, interactional, and alignment features. From it, all formats are reproducibly derived by conversion scripts.
+
+Crucially, the architecture is **bidirectional**: corrections applied at the pivot level propagate to all derived formats and vice versa, without breaking annotation on the rest of the resource.
+
+For this to work, the pivot format must satisfy four requirements:
 
 - **Version-controlled** — every change is a commit; full history is preserved
 - **Validated at ingestion** — well-formedness constraints enforced before any format is generated
@@ -113,7 +128,9 @@ In ELAN, these three utterances appear **side by side** on a shared timeline:
 ![ELAN view of KPN006 — overlapping turns across three speaker tiers](assets/elan-kipn006.png)
 
 > PKP019: `eh (.) se no dice là si fa [c~] (.) si fa casotto`
+>
 > PKP014: `[sì sì sì]`  ← overlaps with PKP019
+>
 > PKP020: `>fa vedere<`  ← overlaps near the end
 
 In the .eaf XML, they live **3000+ lines apart**:
@@ -143,34 +160,27 @@ In the .eaf XML, they live **3000+ lines apart**:
 - Additional annotation layers are **external or tool-dependent**
 - No path to add morphosyntax, prosody, or speech acts without breaking the format
 
-**The deeper problem**: these formats, tools, and pipelines were not designed with spoken interaction in mind. They do not model:
-- the **speaker** as a social agent producing situated language
-- the **interactional setting** — who is talking to whom, under what circumstances
-- **spoken-language specifics** — overlap, repair, prosody, turn-taking, disfluency
-
-They were built for text, then retrofitted for speech.
-
 ---
 
-## What goes wrong without version control
+## What goes wrong with widely adopted pipelines
 
-| Problem                  | Consequence                              |
-| ------------------------ | ---------------------------------------- |
-| Opaque pipeline          | Cannot retrace annotation decisions      |
-| Non-reversible edits     | Ad-hoc choices crystallize permanently   |
-| Single expert bottleneck | Knowledge locked in one person; infrastructure becomes unintelligible to the rest of the team |
-| No adjudication trail    | Inter-annotator disagreement invisible   |
-| Static releases          | Errors cannot be corrected incrementally |
-| Undocumented format migration | Each conversion introduces silent distortions of meaning |
-| Technical and conceptual debt | Earlier shortcuts constrain every future transformation |
+| Problem                       | Consequence                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------------- |
+| Opaqueness                    | Cannot retrace annotation decisions                                                           |
+| Non-reversible edits          | Ad-hoc choices crystallize permanently                                                        |
+| Single expert bottleneck      | Knowledge locked in one person; infrastructure becomes unintelligible to the rest of the team |
+| No adjudication trail         | Inter-annotator disagreement invisible                                                        |
+| Static releases               | Errors cannot be corrected incrementally                                                      |
+| Undocumented format migration | Each conversion introduces silent distortions of meaning                                      |
+| Technical and conceptual debt | Earlier shortcuts constrain every future transformation                                       |
 
 ---
 
 ## The invisible cost of infrastructure
 
-> "Digital Humanities projects often struggle not because of analytical complexity, but because of **fragile data workflows**, undocumented transformations, and ad hoc collaboration practices."
->
-> — Pannitto (submitted)
+> Digital Humanities projects often struggle not because of analytical complexity,
+> but because of **fragile data workflows**, undocumented transformations,
+> and ad hoc collaboration practices.
 
 Infrastructure work is invisible — until it breaks. When it does, the cost is:
 
@@ -178,15 +188,20 @@ Infrastructure work is invisible — until it breaks. When it does, the cost is:
 - **Misalignment between layers**: each format drifts independently
 - **Unintelligible archives**: corpora that become opaque artifacts rather than reusable research objects
 
-The standard response is to delegate all of this to a single technical expert. This creates its own risk: when that person leaves, the infrastructure becomes unmaintainable.
+The standard response is to delegate all of this to a single technical expert.
+This creates its own risk: when that person leaves, the infrastructure becomes unmaintainable.
 
-The alternative is **distributed computational literacy** — shared understanding of version control, transformation logic, and documentation practices across the whole team. Not turning linguists into software engineers, but ensuring no one is left unable to navigate the systems that sustain their own research.
+The alternative is **distributed computational literacy** — shared understanding of version control,
+transformation logic, and documentation practices across the whole team.
+Not turning linguists into software engineers, but ensuring no one is left unable to navigate the systems
+that sustain their own research.
 
 ---
 
-## The standard of practice landscape
+## Why a new format?
 
-Spoken language research is characterised **not by a lack of standards, but by the coexistence of partially incompatible ones**, each optimised for a specific stage of the data lifecycle.
+Spoken language research is characterised **not by a lack of standards, but by the coexistence of partially incompatible ones**,
+each optimised for a specific stage of the data lifecycle.
 
 | Format              | Strength                                     | Limitation                              |
 | ------------------- | -------------------------------------------- | --------------------------------------- |
@@ -201,7 +216,8 @@ Spoken language research is characterised **not by a lack of standards, but by t
 
 ## FAIR data vs FAIR processes
 
-> "Interoperability is not achieved through adherence to formats and standards, but through the **alignment of curatorial practices**."
+> "Interoperability is not achieved through adherence to formats and standards,
+> but through the **alignment of curatorial practices**."
 >
 > — Pannitto & Mauri (2025)
 
@@ -213,19 +229,20 @@ Spoken language research is characterised **not by a lack of standards, but by t
 
 ## Corpora as living artefacts
 
-> "Dataset curation increasingly resembles a form of **continuous development**, rather than a linear production pipeline culminating in a static release."
+> "Dataset curation increasingly resembles a form of **continuous development**,
+> rather than a linear production pipeline culminating in a static release."
 >
 > — Pannitto & Mauri (2025)
 
 New data are added · Errors are corrected · Formats evolve · New reuse scenarios emerge
 
-→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself
-
-Without explicit documentation of data models, processing steps, and dependencies, archived corpora risk becoming **opaque artifacts** rather than reusable research objects — intelligible only to whoever built them, and only for as long as that person is available.
+→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself — and software engineering already has mature tools for exactly this. We do not need to reinvent the wheel.
 
 ---
 
 ## The DevOps analogy
+
+**DevOps** (**Dev**elopment + **Op**erations) is a set of practices from software engineering that breaks down the traditional wall between the people who *write* code and the people who *deploy and maintain* it. The combined workflow treats development as a *continuous, collaborative, and automated* process — rather than a sequence of isolated handoffs. Its core idea: every change is tracked, every build is reproducible, and quality is enforced automatically before anything reaches production.
 
 | Software development | Corpus development                     |
 | -------------------- | -------------------------------------- |
@@ -240,17 +257,17 @@ Without explicit documentation of data models, processing steps, and dependencie
 
 ---
 
-## What we want
+## The answer already exists
 
-A workflow that is:
+Software engineers faced the same problems decades ago — distributed teams, evolving artifacts, the need to track every change and recover from every mistake — and built tools to solve them.
 
-- **Transparent** — full record of every annotation decision
-- **Efficient** — automated validation and conversion
-- **Consistent** — schema enforcement before merge
-- **Participatory** — open to community contributions and corrections
-- **Reversible** — any change can be traced and undone
+Those tools are:
 
-→ This is exactly what **Git** (a software) and **GitHub** (a platform, out of many) were built for
+- **Git** — version control: every change is a commit, every state is recoverable
+- **GitHub / GitLab** — collaboration platforms: review, discussion, and automation built in
+- **CI/CD** — automated pipelines: validation and conversion run on every commit, not manually
+
+We do not need to build new infrastructure. We need to apply existing infrastructure to a new domain.
 
 ---
 

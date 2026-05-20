@@ -35,10 +35,22 @@ import os
 import re
 import sys
 import textwrap
+import urllib.request
 from pathlib import Path
 
 # ── Version ──────────────────────────────────────────────────────────────────
-__version__ = "1.0.0"
+__version__ = "1.1.0"
+
+MARKED_CDN = "https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"
+
+def fetch_marked() -> str:
+    """Download marked.min.js for inline embedding; return empty string on failure."""
+    try:
+        with urllib.request.urlopen(MARKED_CDN, timeout=8) as r:
+            return r.read().decode('utf-8')
+    except Exception as e:
+        print(f"  [warning] Could not fetch marked.js ({e}); falling back to CDN link.", file=sys.stderr)
+        return ""
 
 # ── Section metadata heuristics ──────────────────────────────────────────────
 def guess_label(filename: str, content: str, index: int) -> dict:
@@ -107,7 +119,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 #progress-bar{width:80px;height:2px;background:var(--border);border-radius:1px;overflow:hidden}
 #progress-fill{height:100%;background:var(--accent);border-radius:1px;transition:width .3s ease}
 #stage{flex:1;display:flex;align-items:stretch;overflow:hidden;position:relative}
-.slide{position:absolute;inset:0;padding:52px 80px 40px;display:flex;flex-direction:column;justify-content:center;opacity:0;transform:translateX(40px);transition:opacity .28s ease,transform .28s ease;pointer-events:none;overflow-y:auto}
+.slide{position:absolute;inset:0;padding:52px 80px 40px;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;opacity:0;transform:translateX(40px);transition:opacity .28s ease,transform .28s ease;pointer-events:none;overflow-y:auto}
+.slide>*{width:100%;max-width:860px}
 .slide.active{opacity:1;transform:translateX(0);pointer-events:auto}
 @media(min-width:900px){.slide{padding:58px 100px 46px}}
 .section-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:24px;font-family:var(--font-mono);flex-shrink:0}
@@ -120,7 +133,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 .slide-quote blockquote{border-left:3px solid var(--accent);padding-left:28px;margin:0 0 20px;max-width:780px}
 .slide-quote blockquote p{font-family:var(--font-head);font-size:clamp(16px,1.9vw,23px);font-style:italic;color:var(--text);line-height:1.55}
 .slide-quote blockquote p em{color:var(--accent);font-style:normal}
-.slide h2{font-family:var(--font-head);font-size:clamp(20px,2.6vw,34px);font-weight:400;color:var(--text);margin-bottom:28px;line-height:1.25;border-bottom:0.5px solid var(--border);padding-bottom:14px;flex-shrink:0}
+.slide h2{font-family:var(--font-head);font-size:clamp(20px,2.6vw,34px);font-weight:400;color:var(--text);margin-bottom:48px;line-height:1.25;border-bottom:0.5px solid var(--border);padding-bottom:14px;flex-shrink:0}
 .slide p{font-size:clamp(13px,1.45vw,17px);line-height:1.7;color:var(--text);max-width:780px;margin-bottom:14px}
 .slide p em{color:var(--accent);font-style:italic}
 .slide p strong{color:var(--accent2);font-weight:500}
@@ -136,6 +149,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 .slide pre{background:var(--code-bg);border:0.5px solid var(--border);border-left:3px solid var(--accent2);border-radius:6px;padding:18px 22px;margin:0 0 18px;overflow-x:auto;max-width:860px;flex-shrink:0}
 .slide pre code{font-family:var(--font-mono);font-size:clamp(10px,1vw,13px);line-height:1.65;color:#a8c4cc}
 .slide code:not(pre code){font-family:var(--font-mono);font-size:.87em;background:var(--code-bg);border:0.5px solid var(--border);padding:1px 5px;border-radius:3px;color:var(--accent2)}
+.slide img{max-width:100%;max-height:45vh;height:auto;display:block;margin:0 auto 18px;border-radius:4px;border:0.5px solid var(--border)}
 .slide table{border-collapse:collapse;width:100%;max-width:860px;margin-bottom:18px;font-size:clamp(11px,1.2vw,14px)}
 .slide th{background:var(--code-bg);color:var(--accent);font-weight:500;font-family:var(--font-mono);font-size:.84em;letter-spacing:.04em;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border)}
 .slide td{padding:8px 13px;border-bottom:0.5px solid var(--border);color:var(--text);vertical-align:top}
@@ -278,7 +292,7 @@ HTML_TEMPLATE = """\
 <meta name="license" content="CC BY-NC 4.0 — https://creativecommons.org/licenses/by-nc/4.0/">
 <meta name="author" content="{author}">
 <title>{title}</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+{marked_script}
 <style>
 {css}
 </style>
@@ -353,16 +367,20 @@ def build_html(sections_meta: list[dict], args) -> str:
     ]
     sections_json = json.dumps(sections_js, ensure_ascii=False, indent=2)
 
-    # Fallbacks dict
-    if args.embed:
-        fallback_parts = []
-        for s in sections_meta:
-            key = js_escape(s['file'])
-            val = js_escape(s['content'])
-            fallback_parts.append(f"  {json.dumps(s['file'])}: `{val}`")
-        fallbacks = '\n' + ',\n'.join(fallback_parts) + '\n'
+    # Embed marked.js inline for offline / file:// use
+    print("  Fetching marked.js for inline embed…")
+    marked_src = fetch_marked()
+    if marked_src:
+        marked_script = f"<script>{marked_src}</script>"
     else:
-        fallbacks = ''
+        marked_script = f'<script src="{MARKED_CDN}"></script>'
+
+    # Fallbacks dict (always embedded)
+    fallback_parts = []
+    for s in sections_meta:
+        val = js_escape(s['content'])
+        fallback_parts.append(f"  {json.dumps(s['file'])}: `{val}`")
+    fallbacks = '\n' + ',\n'.join(fallback_parts) + '\n'
 
     html = HTML_TEMPLATE.format(
         css=CSS,
@@ -375,6 +393,7 @@ def build_html(sections_meta: list[dict], args) -> str:
         js_runtime=JS_RUNTIME,
         fallbacks=fallbacks,
         version=__version__,
+        marked_script=marked_script,
     )
     return html
 
@@ -393,10 +412,6 @@ def parse_args():
                    help='Browser tab title (default: first h1 of first file)')
     p.add_argument('--author', default='',
                    help='Author string shown in footer (default: Dr. Ludovica Pannitto)')
-    p.add_argument('--embed', dest='embed', action='store_true', default=True,
-                   help='Embed Markdown in JS fallbacks (default: True)')
-    p.add_argument('--no-embed', dest='embed', action='store_false',
-                   help='Do not embed Markdown; fetch at runtime (requires HTTP server)')
     p.add_argument('--version', action='version', version=f'md2slides {__version__}')
     return p.parse_args()
 
@@ -419,7 +434,6 @@ def main():
     print(f"md2slides {__version__}")
     print(f"  Input:  {', '.join(input_files)}")
     print(f"  Output: {args.output}")
-    print(f"  Embed:  {args.embed}")
 
     sections_meta = collect_sections(input_files)
     html = build_html(sections_meta, args)

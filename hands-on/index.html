@@ -6,7 +6,13 @@
 <meta name="license" content="CC BY-NC 4.0 — https://creativecommons.org/licenses/by-nc/4.0/">
 <meta name="author" content="Dr. Ludovica Pannitto — Università di Bologna">
 <title>Git as a Collaborative Environment for Multilayer Spoken Resource Development</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+<script>/**
+ * marked v9.1.6 - a markdown parser
+ * Copyright (c) 2011-2023, Christopher Jeffrey. (MIT Licensed)
+ * https://github.com/markedjs/marked
+ */
+!function(e,t){"object"==typeof exports&&"undefined"!=typeof module?t(exports):"function"==typeof define&&define.amd?define(["exports"],t):t((e="undefined"!=typeof globalThis?globalThis:e||self).marked={})}(this,(function(e){"use strict";function t(){return{async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null}}function n(t){e.defaults=t}e.defaults={async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null};const s=/[&<>"']/,r=new RegExp(s.source,"g"),i=/[<>"']|&(?!(#\d{1,7}|#[Xx][a-fA-F0-9]{1,6}|\w+);)/,l=new RegExp(i.source,"g"),o={"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"},a=e=>o[e];function c(e,t){if(t){if(s.test(e))return e.replace(r,a)}else if(i.test(e))return e.replace(l,a);return e}const h=/&(#(?:\d+)|(?:#x[0-9A-Fa-f]+)|(?:\w+));?/gi;const p=/(^|[^\[])\^/g;function u(e,t){e="string"==typeof e?e:e.source,t=t||"";const n={replace:(t,s)=>(s=(s="object"==typeof s&&"source"in s?s.source:s).replace(p,"$1"),e=e.replace(t,s),n),getRegex:()=>new RegExp(e,t)};return n}function g(e){try{e=encodeURI(e).replace(/%25/g,"%")}catch(e){return null}return e}const k={exec:()=>null};function f(e,t){const n=e.replace(/\|/g,((e,t,n)=>{let s=!1,r=t;for(;--r>=0&&"\\"===n[r];)s=!s;return s?"|":" |"})).split(/ \|/);let s=0;if(n[0].trim()||n.shift(),n.length>0&&!n[n.length-1].trim()&&n.pop(),t)if(n.length>t)n.splice(t);else for(;n.length<t;)n.push("");for(;s<n.length;s++)n[s]=n[s].trim().replace(/\\\|/g,"|");return n}function d(e,t,n){const s=e.length;if(0===s)return"";let r=0;for(;r<s;){const i=e.charAt(s-r-1);if(i!==t||n){if(i===t||!n)break;r++}else r++}return e.slice(0,s-r)}function x(e,t,n,s){const r=t.href,i=t.title?c(t.title):null,l=e[1].replace(/\\([\[\]])/g,"$1");if("!"!==e[0].charAt(0)){s.state.inLink=!0;const e={type:"link",raw:n,href:r,title:i,text:l,tokens:s.inlineTokens(l)};return s.state.inLink=!1,e}return{type:"image",raw:n,href:r,title:i,text:c(l)}}class b{options;rules;lexer;constructor(t){this.options=t||e.defaults}space(e){const t=this.rules.block.newline.exec(e);if(t&&t[0].length>0)return{type:"space",raw:t[0]}}code(e){const t=this.rules.block.code.exec(e);if(t){const e=t[0].replace(/^ {1,4}/gm,"");return{type:"code",raw:t[0],codeBlockStyle:"indented",text:this.options.pedantic?e:d(e,"\n")}}}fences(e){const t=this.rules.block.fences.exec(e);if(t){const e=t[0],n=function(e,t){const n=e.match(/^(\s+)(?:```)/);if(null===n)return t;const s=n[1];return t.split("\n").map((e=>{const t=e.match(/^\s+/);if(null===t)return e;const[n]=t;return n.length>=s.length?e.slice(s.length):e})).join("\n")}(e,t[3]||"");return{type:"code",raw:e,lang:t[2]?t[2].trim().replace(this.rules.inline._escapes,"$1"):t[2],text:n}}}heading(e){const t=this.rules.block.heading.exec(e);if(t){let e=t[2].trim();if(/#$/.test(e)){const t=d(e,"#");this.options.pedantic?e=t.trim():t&&!/ $/.test(t)||(e=t.trim())}return{type:"heading",raw:t[0],depth:t[1].length,text:e,tokens:this.lexer.inline(e)}}}hr(e){const t=this.rules.block.hr.exec(e);if(t)return{type:"hr",raw:t[0]}}blockquote(e){const t=this.rules.block.blockquote.exec(e);if(t){const e=d(t[0].replace(/^ *>[ \t]?/gm,""),"\n"),n=this.lexer.state.top;this.lexer.state.top=!0;const s=this.lexer.blockTokens(e);return this.lexer.state.top=n,{type:"blockquote",raw:t[0],tokens:s,text:e}}}list(e){let t=this.rules.block.list.exec(e);if(t){let n=t[1].trim();const s=n.length>1,r={type:"list",raw:"",ordered:s,start:s?+n.slice(0,-1):"",loose:!1,items:[]};n=s?`\\d{1,9}\\${n.slice(-1)}`:`\\${n}`,this.options.pedantic&&(n=s?n:"[*+-]");const i=new RegExp(`^( {0,3}${n})((?:[\t ][^\\n]*)?(?:\\n|$))`);let l="",o="",a=!1;for(;e;){let n=!1;if(!(t=i.exec(e)))break;if(this.rules.block.hr.test(e))break;l=t[0],e=e.substring(l.length);let s=t[2].split("\n",1)[0].replace(/^\t+/,(e=>" ".repeat(3*e.length))),c=e.split("\n",1)[0],h=0;this.options.pedantic?(h=2,o=s.trimStart()):(h=t[2].search(/[^ ]/),h=h>4?1:h,o=s.slice(h),h+=t[1].length);let p=!1;if(!s&&/^ *$/.test(c)&&(l+=c+"\n",e=e.substring(c.length+1),n=!0),!n){const t=new RegExp(`^ {0,${Math.min(3,h-1)}}(?:[*+-]|\\d{1,9}[.)])((?:[ \t][^\\n]*)?(?:\\n|$))`),n=new RegExp(`^ {0,${Math.min(3,h-1)}}((?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$)`),r=new RegExp(`^ {0,${Math.min(3,h-1)}}(?:\`\`\`|~~~)`),i=new RegExp(`^ {0,${Math.min(3,h-1)}}#`);for(;e;){const a=e.split("\n",1)[0];if(c=a,this.options.pedantic&&(c=c.replace(/^ {1,4}(?=( {4})*[^ ])/g,"  ")),r.test(c))break;if(i.test(c))break;if(t.test(c))break;if(n.test(e))break;if(c.search(/[^ ]/)>=h||!c.trim())o+="\n"+c.slice(h);else{if(p)break;if(s.search(/[^ ]/)>=4)break;if(r.test(s))break;if(i.test(s))break;if(n.test(s))break;o+="\n"+c}p||c.trim()||(p=!0),l+=a+"\n",e=e.substring(a.length+1),s=c.slice(h)}}r.loose||(a?r.loose=!0:/\n *\n *$/.test(l)&&(a=!0));let u,g=null;this.options.gfm&&(g=/^\[[ xX]\] /.exec(o),g&&(u="[ ] "!==g[0],o=o.replace(/^\[[ xX]\] +/,""))),r.items.push({type:"list_item",raw:l,task:!!g,checked:u,loose:!1,text:o,tokens:[]}),r.raw+=l}r.items[r.items.length-1].raw=l.trimEnd(),r.items[r.items.length-1].text=o.trimEnd(),r.raw=r.raw.trimEnd();for(let e=0;e<r.items.length;e++)if(this.lexer.state.top=!1,r.items[e].tokens=this.lexer.blockTokens(r.items[e].text,[]),!r.loose){const t=r.items[e].tokens.filter((e=>"space"===e.type)),n=t.length>0&&t.some((e=>/\n.*\n/.test(e.raw)));r.loose=n}if(r.loose)for(let e=0;e<r.items.length;e++)r.items[e].loose=!0;return r}}html(e){const t=this.rules.block.html.exec(e);if(t){return{type:"html",block:!0,raw:t[0],pre:"pre"===t[1]||"script"===t[1]||"style"===t[1],text:t[0]}}}def(e){const t=this.rules.block.def.exec(e);if(t){const e=t[1].toLowerCase().replace(/\s+/g," "),n=t[2]?t[2].replace(/^<(.*)>$/,"$1").replace(this.rules.inline._escapes,"$1"):"",s=t[3]?t[3].substring(1,t[3].length-1).replace(this.rules.inline._escapes,"$1"):t[3];return{type:"def",tag:e,raw:t[0],href:n,title:s}}}table(e){const t=this.rules.block.table.exec(e);if(t){if(!/[:|]/.test(t[2]))return;const e={type:"table",raw:t[0],header:f(t[1]).map((e=>({text:e,tokens:[]}))),align:t[2].replace(/^\||\| *$/g,"").split("|"),rows:t[3]&&t[3].trim()?t[3].replace(/\n[ \t]*$/,"").split("\n"):[]};if(e.header.length===e.align.length){let t,n,s,r,i=e.align.length;for(t=0;t<i;t++){const n=e.align[t];n&&(/^ *-+: *$/.test(n)?e.align[t]="right":/^ *:-+: *$/.test(n)?e.align[t]="center":/^ *:-+ *$/.test(n)?e.align[t]="left":e.align[t]=null)}for(i=e.rows.length,t=0;t<i;t++)e.rows[t]=f(e.rows[t],e.header.length).map((e=>({text:e,tokens:[]})));for(i=e.header.length,n=0;n<i;n++)e.header[n].tokens=this.lexer.inline(e.header[n].text);for(i=e.rows.length,n=0;n<i;n++)for(r=e.rows[n],s=0;s<r.length;s++)r[s].tokens=this.lexer.inline(r[s].text);return e}}}lheading(e){const t=this.rules.block.lheading.exec(e);if(t)return{type:"heading",raw:t[0],depth:"="===t[2].charAt(0)?1:2,text:t[1],tokens:this.lexer.inline(t[1])}}paragraph(e){const t=this.rules.block.paragraph.exec(e);if(t){const e="\n"===t[1].charAt(t[1].length-1)?t[1].slice(0,-1):t[1];return{type:"paragraph",raw:t[0],text:e,tokens:this.lexer.inline(e)}}}text(e){const t=this.rules.block.text.exec(e);if(t)return{type:"text",raw:t[0],text:t[0],tokens:this.lexer.inline(t[0])}}escape(e){const t=this.rules.inline.escape.exec(e);if(t)return{type:"escape",raw:t[0],text:c(t[1])}}tag(e){const t=this.rules.inline.tag.exec(e);if(t)return!this.lexer.state.inLink&&/^<a /i.test(t[0])?this.lexer.state.inLink=!0:this.lexer.state.inLink&&/^<\/a>/i.test(t[0])&&(this.lexer.state.inLink=!1),!this.lexer.state.inRawBlock&&/^<(pre|code|kbd|script)(\s|>)/i.test(t[0])?this.lexer.state.inRawBlock=!0:this.lexer.state.inRawBlock&&/^<\/(pre|code|kbd|script)(\s|>)/i.test(t[0])&&(this.lexer.state.inRawBlock=!1),{type:"html",raw:t[0],inLink:this.lexer.state.inLink,inRawBlock:this.lexer.state.inRawBlock,block:!1,text:t[0]}}link(e){const t=this.rules.inline.link.exec(e);if(t){const e=t[2].trim();if(!this.options.pedantic&&/^</.test(e)){if(!/>$/.test(e))return;const t=d(e.slice(0,-1),"\\");if((e.length-t.length)%2==0)return}else{const e=function(e,t){if(-1===e.indexOf(t[1]))return-1;let n=0;for(let s=0;s<e.length;s++)if("\\"===e[s])s++;else if(e[s]===t[0])n++;else if(e[s]===t[1]&&(n--,n<0))return s;return-1}(t[2],"()");if(e>-1){const n=(0===t[0].indexOf("!")?5:4)+t[1].length+e;t[2]=t[2].substring(0,e),t[0]=t[0].substring(0,n).trim(),t[3]=""}}let n=t[2],s="";if(this.options.pedantic){const e=/^([^'"]*[^\s])\s+(['"])(.*)\2/.exec(n);e&&(n=e[1],s=e[3])}else s=t[3]?t[3].slice(1,-1):"";return n=n.trim(),/^</.test(n)&&(n=this.options.pedantic&&!/>$/.test(e)?n.slice(1):n.slice(1,-1)),x(t,{href:n?n.replace(this.rules.inline._escapes,"$1"):n,title:s?s.replace(this.rules.inline._escapes,"$1"):s},t[0],this.lexer)}}reflink(e,t){let n;if((n=this.rules.inline.reflink.exec(e))||(n=this.rules.inline.nolink.exec(e))){let e=(n[2]||n[1]).replace(/\s+/g," ");if(e=t[e.toLowerCase()],!e){const e=n[0].charAt(0);return{type:"text",raw:e,text:e}}return x(n,e,n[0],this.lexer)}}emStrong(e,t,n=""){let s=this.rules.inline.emStrong.lDelim.exec(e);if(!s)return;if(s[3]&&n.match(/[\p{L}\p{N}]/u))return;if(!(s[1]||s[2]||"")||!n||this.rules.inline.punctuation.exec(n)){const n=[...s[0]].length-1;let r,i,l=n,o=0;const a="*"===s[0][0]?this.rules.inline.emStrong.rDelimAst:this.rules.inline.emStrong.rDelimUnd;for(a.lastIndex=0,t=t.slice(-1*e.length+n);null!=(s=a.exec(t));){if(r=s[1]||s[2]||s[3]||s[4]||s[5]||s[6],!r)continue;if(i=[...r].length,s[3]||s[4]){l+=i;continue}if((s[5]||s[6])&&n%3&&!((n+i)%3)){o+=i;continue}if(l-=i,l>0)continue;i=Math.min(i,i+l+o);const t=[...s[0]][0].length,a=e.slice(0,n+s.index+t+i);if(Math.min(n,i)%2){const e=a.slice(1,-1);return{type:"em",raw:a,text:e,tokens:this.lexer.inlineTokens(e)}}const c=a.slice(2,-2);return{type:"strong",raw:a,text:c,tokens:this.lexer.inlineTokens(c)}}}}codespan(e){const t=this.rules.inline.code.exec(e);if(t){let e=t[2].replace(/\n/g," ");const n=/[^ ]/.test(e),s=/^ /.test(e)&&/ $/.test(e);return n&&s&&(e=e.substring(1,e.length-1)),e=c(e,!0),{type:"codespan",raw:t[0],text:e}}}br(e){const t=this.rules.inline.br.exec(e);if(t)return{type:"br",raw:t[0]}}del(e){const t=this.rules.inline.del.exec(e);if(t)return{type:"del",raw:t[0],text:t[2],tokens:this.lexer.inlineTokens(t[2])}}autolink(e){const t=this.rules.inline.autolink.exec(e);if(t){let e,n;return"@"===t[2]?(e=c(t[1]),n="mailto:"+e):(e=c(t[1]),n=e),{type:"link",raw:t[0],text:e,href:n,tokens:[{type:"text",raw:e,text:e}]}}}url(e){let t;if(t=this.rules.inline.url.exec(e)){let e,n;if("@"===t[2])e=c(t[0]),n="mailto:"+e;else{let s;do{s=t[0],t[0]=this.rules.inline._backpedal.exec(t[0])[0]}while(s!==t[0]);e=c(t[0]),n="www."===t[1]?"http://"+t[0]:t[0]}return{type:"link",raw:t[0],text:e,href:n,tokens:[{type:"text",raw:e,text:e}]}}}inlineText(e){const t=this.rules.inline.text.exec(e);if(t){let e;return e=this.lexer.state.inRawBlock?t[0]:c(t[0]),{type:"text",raw:t[0],text:e}}}}const m={newline:/^(?: *(?:\n|$))+/,code:/^( {4}[^\n]+(?:\n(?: *(?:\n|$))*)?)+/,fences:/^ {0,3}(`{3,}(?=[^`\n]*(?:\n|$))|~{3,})([^\n]*)(?:\n|$)(?:|([\s\S]*?)(?:\n|$))(?: {0,3}\1[~`]* *(?=\n|$)|$)/,hr:/^ {0,3}((?:-[\t ]*){3,}|(?:_[ \t]*){3,}|(?:\*[ \t]*){3,})(?:\n+|$)/,heading:/^ {0,3}(#{1,6})(?=\s|$)(.*)(?:\n+|$)/,blockquote:/^( {0,3}> ?(paragraph|[^\n]*)(?:\n|$))+/,list:/^( {0,3}bull)([ \t][^\n]+?)?(?:\n|$)/,html:"^ {0,3}(?:<(script|pre|style|textarea)[\\s>][\\s\\S]*?(?:</\\1>[^\\n]*\\n+|$)|comment[^\\n]*(\\n+|$)|<\\?[\\s\\S]*?(?:\\?>\\n*|$)|<![A-Z][\\s\\S]*?(?:>\\n*|$)|<!\\[CDATA\\[[\\s\\S]*?(?:\\]\\]>\\n*|$)|</?(tag)(?: +|\\n|/?>)[\\s\\S]*?(?:(?:\\n *)+\\n|$)|<(?!script|pre|style|textarea)([a-z][\\w-]*)(?:attribute)*? */?>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n *)+\\n|$)|</(?!script|pre|style|textarea)[a-z][\\w-]*\\s*>(?=[ \\t]*(?:\\n|$))[\\s\\S]*?(?:(?:\\n *)+\\n|$))",def:/^ {0,3}\[(label)\]: *(?:\n *)?([^<\s][^\s]*|<.*?>)(?:(?: +(?:\n *)?| *\n *)(title))? *(?:\n+|$)/,table:k,lheading:/^(?!bull )((?:.|\n(?!\s*?\n|bull ))+?)\n {0,3}(=+|-+) *(?:\n+|$)/,_paragraph:/^([^\n]+(?:\n(?!hr|heading|lheading|blockquote|fences|list|html|table| +\n)[^\n]+)*)/,text:/^[^\n]+/,_label:/(?!\s*\])(?:\\.|[^\[\]\\])+/,_title:/(?:"(?:\\"?|[^"\\])*"|'[^'\n]*(?:\n[^'\n]+)*\n?'|\([^()]*\))/};m.def=u(m.def).replace("label",m._label).replace("title",m._title).getRegex(),m.bullet=/(?:[*+-]|\d{1,9}[.)])/,m.listItemStart=u(/^( *)(bull) */).replace("bull",m.bullet).getRegex(),m.list=u(m.list).replace(/bull/g,m.bullet).replace("hr","\\n+(?=\\1?(?:(?:- *){3,}|(?:_ *){3,}|(?:\\* *){3,})(?:\\n+|$))").replace("def","\\n+(?="+m.def.source+")").getRegex(),m._tag="address|article|aside|base|basefont|blockquote|body|caption|center|col|colgroup|dd|details|dialog|dir|div|dl|dt|fieldset|figcaption|figure|footer|form|frame|frameset|h[1-6]|head|header|hr|html|iframe|legend|li|link|main|menu|menuitem|meta|nav|noframes|ol|optgroup|option|p|param|section|source|summary|table|tbody|td|tfoot|th|thead|title|tr|track|ul",m._comment=/<!--(?!-?>)[\s\S]*?(?:-->|$)/,m.html=u(m.html,"i").replace("comment",m._comment).replace("tag",m._tag).replace("attribute",/ +[a-zA-Z:_][\w.:-]*(?: *= *"[^"\n]*"| *= *'[^'\n]*'| *= *[^\s"'=<>`]+)?/).getRegex(),m.lheading=u(m.lheading).replace(/bull/g,m.bullet).getRegex(),m.paragraph=u(m._paragraph).replace("hr",m.hr).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("|table","").replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",m._tag).getRegex(),m.blockquote=u(m.blockquote).replace("paragraph",m.paragraph).getRegex(),m.normal={...m},m.gfm={...m.normal,table:"^ *([^\\n ].*)\\n {0,3}((?:\\| *)?:?-+:? *(?:\\| *:?-+:? *)*(?:\\| *)?)(?:\\n((?:(?! *\\n|hr|heading|blockquote|code|fences|list|html).*(?:\\n|$))*)\\n*|$)"},m.gfm.table=u(m.gfm.table).replace("hr",m.hr).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("blockquote"," {0,3}>").replace("code"," {4}[^\\n]").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",m._tag).getRegex(),m.gfm.paragraph=u(m._paragraph).replace("hr",m.hr).replace("heading"," {0,3}#{1,6}(?:\\s|$)").replace("|lheading","").replace("table",m.gfm.table).replace("blockquote"," {0,3}>").replace("fences"," {0,3}(?:`{3,}(?=[^`\\n]*\\n)|~{3,})[^\\n]*\\n").replace("list"," {0,3}(?:[*+-]|1[.)]) ").replace("html","</?(?:tag)(?: +|\\n|/?>)|<(?:script|pre|style|textarea|!--)").replace("tag",m._tag).getRegex(),m.pedantic={...m.normal,html:u("^ *(?:comment *(?:\\n|\\s*$)|<(tag)[\\s\\S]+?</\\1> *(?:\\n{2,}|\\s*$)|<tag(?:\"[^\"]*\"|'[^']*'|\\s[^'\"/>\\s]*)*?/?> *(?:\\n{2,}|\\s*$))").replace("comment",m._comment).replace(/tag/g,"(?!(?:a|em|strong|small|s|cite|q|dfn|abbr|data|time|code|var|samp|kbd|sub|sup|i|b|u|mark|ruby|rt|rp|bdi|bdo|span|br|wbr|ins|del|img)\\b)\\w+(?!:|[^\\w\\s@]*@)\\b").getRegex(),def:/^ *\[([^\]]+)\]: *<?([^\s>]+)>?(?: +(["(][^\n]+[")]))? *(?:\n+|$)/,heading:/^(#{1,6})(.*)(?:\n+|$)/,fences:k,lheading:/^(.+?)\n {0,3}(=+|-+) *(?:\n+|$)/,paragraph:u(m.normal._paragraph).replace("hr",m.hr).replace("heading"," *#{1,6} *[^\n]").replace("lheading",m.lheading).replace("blockquote"," {0,3}>").replace("|fences","").replace("|list","").replace("|html","").getRegex()};const w={escape:/^\\([!"#$%&'()*+,\-./:;<=>?@\[\]\\^_`{|}~])/,autolink:/^<(scheme:[^\s\x00-\x1f<>]*|email)>/,url:k,tag:"^comment|^</[a-zA-Z][\\w:-]*\\s*>|^<[a-zA-Z][\\w-]*(?:attribute)*?\\s*/?>|^<\\?[\\s\\S]*?\\?>|^<![a-zA-Z]+\\s[\\s\\S]*?>|^<!\\[CDATA\\[[\\s\\S]*?\\]\\]>",link:/^!?\[(label)\]\(\s*(href)(?:\s+(title))?\s*\)/,reflink:/^!?\[(label)\]\[(ref)\]/,nolink:/^!?\[(ref)\](?:\[\])?/,reflinkSearch:"reflink|nolink(?!\\()",emStrong:{lDelim:/^(?:\*+(?:((?!\*)[punct])|[^\s*]))|^_+(?:((?!_)[punct])|([^\s_]))/,rDelimAst:/^[^_*]*?__[^_*]*?\*[^_*]*?(?=__)|[^*]+(?=[^*])|(?!\*)[punct](\*+)(?=[\s]|$)|[^punct\s](\*+)(?!\*)(?=[punct\s]|$)|(?!\*)[punct\s](\*+)(?=[^punct\s])|[\s](\*+)(?!\*)(?=[punct])|(?!\*)[punct](\*+)(?!\*)(?=[punct])|[^punct\s](\*+)(?=[^punct\s])/,rDelimUnd:/^[^_*]*?\*\*[^_*]*?_[^_*]*?(?=\*\*)|[^_]+(?=[^_])|(?!_)[punct](_+)(?=[\s]|$)|[^punct\s](_+)(?!_)(?=[punct\s]|$)|(?!_)[punct\s](_+)(?=[^punct\s])|[\s](_+)(?!_)(?=[punct])|(?!_)[punct](_+)(?!_)(?=[punct])/},code:/^(`+)([^`]|[^`][\s\S]*?[^`])\1(?!`)/,br:/^( {2,}|\\)\n(?!\s*$)/,del:k,text:/^(`+|[^`])(?:(?= {2,}\n)|[\s\S]*?(?:(?=[\\<!\[`*_]|\b_|$)|[^ ](?= {2,}\n)))/,punctuation:/^((?![*_])[\spunctuation])/,_punctuation:"\\p{P}$+<=>`^|~"};w.punctuation=u(w.punctuation,"u").replace(/punctuation/g,w._punctuation).getRegex(),w.blockSkip=/\[[^[\]]*?\]\([^\(\)]*?\)|`[^`]*?`|<[^<>]*?>/g,w.anyPunctuation=/\\[punct]/g,w._escapes=/\\([punct])/g,w._comment=u(m._comment).replace("(?:--\x3e|$)","--\x3e").getRegex(),w.emStrong.lDelim=u(w.emStrong.lDelim,"u").replace(/punct/g,w._punctuation).getRegex(),w.emStrong.rDelimAst=u(w.emStrong.rDelimAst,"gu").replace(/punct/g,w._punctuation).getRegex(),w.emStrong.rDelimUnd=u(w.emStrong.rDelimUnd,"gu").replace(/punct/g,w._punctuation).getRegex(),w.anyPunctuation=u(w.anyPunctuation,"gu").replace(/punct/g,w._punctuation).getRegex(),w._escapes=u(w._escapes,"gu").replace(/punct/g,w._punctuation).getRegex(),w._scheme=/[a-zA-Z][a-zA-Z0-9+.-]{1,31}/,w._email=/[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+(@)[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)+(?![-_])/,w.autolink=u(w.autolink).replace("scheme",w._scheme).replace("email",w._email).getRegex(),w._attribute=/\s+[a-zA-Z:_][\w.:-]*(?:\s*=\s*"[^"]*"|\s*=\s*'[^']*'|\s*=\s*[^\s"'=<>`]+)?/,w.tag=u(w.tag).replace("comment",w._comment).replace("attribute",w._attribute).getRegex(),w._label=/(?:\[(?:\\.|[^\[\]\\])*\]|\\.|`[^`]*`|[^\[\]\\`])*?/,w._href=/<(?:\\.|[^\n<>\\])+>|[^\s\x00-\x1f]*/,w._title=/"(?:\\"?|[^"\\])*"|'(?:\\'?|[^'\\])*'|\((?:\\\)?|[^)\\])*\)/,w.link=u(w.link).replace("label",w._label).replace("href",w._href).replace("title",w._title).getRegex(),w.reflink=u(w.reflink).replace("label",w._label).replace("ref",m._label).getRegex(),w.nolink=u(w.nolink).replace("ref",m._label).getRegex(),w.reflinkSearch=u(w.reflinkSearch,"g").replace("reflink",w.reflink).replace("nolink",w.nolink).getRegex(),w.normal={...w},w.pedantic={...w.normal,strong:{start:/^__|\*\*/,middle:/^__(?=\S)([\s\S]*?\S)__(?!_)|^\*\*(?=\S)([\s\S]*?\S)\*\*(?!\*)/,endAst:/\*\*(?!\*)/g,endUnd:/__(?!_)/g},em:{start:/^_|\*/,middle:/^()\*(?=\S)([\s\S]*?\S)\*(?!\*)|^_(?=\S)([\s\S]*?\S)_(?!_)/,endAst:/\*(?!\*)/g,endUnd:/_(?!_)/g},link:u(/^!?\[(label)\]\((.*?)\)/).replace("label",w._label).getRegex(),reflink:u(/^!?\[(label)\]\s*\[([^\]]*)\]/).replace("label",w._label).getRegex()},w.gfm={...w.normal,escape:u(w.escape).replace("])","~|])").getRegex(),_extended_email:/[A-Za-z0-9._+-]+(@)[a-zA-Z0-9-_]+(?:\.[a-zA-Z0-9-_]*[a-zA-Z0-9])+(?![-_])/,url:/^((?:ftp|https?):\/\/|www\.)(?:[a-zA-Z0-9\-]+\.?)+[^\s<]*|^email/,_backpedal:/(?:[^?!.,:;*_'"~()&]+|\([^)]*\)|&(?![a-zA-Z0-9]+;$)|[?!.,:;*_'"~)]+(?!$))+/,del:/^(~~?)(?=[^\s~])([\s\S]*?[^\s~])\1(?=[^~]|$)/,text:/^([`~]+|[^`~])(?:(?= {2,}\n)|(?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)|[\s\S]*?(?:(?=[\\<!\[`*~_]|\b_|https?:\/\/|ftp:\/\/|www\.|$)|[^ ](?= {2,}\n)|[^a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-](?=[a-zA-Z0-9.!#$%&'*+\/=?_`{\|}~-]+@)))/},w.gfm.url=u(w.gfm.url,"i").replace("email",w.gfm._extended_email).getRegex(),w.breaks={...w.gfm,br:u(w.br).replace("{2,}","*").getRegex(),text:u(w.gfm.text).replace("\\b_","\\b_| {2,}\\n").replace(/\{2,\}/g,"*").getRegex()};class _{tokens;options;state;tokenizer;inlineQueue;constructor(t){this.tokens=[],this.tokens.links=Object.create(null),this.options=t||e.defaults,this.options.tokenizer=this.options.tokenizer||new b,this.tokenizer=this.options.tokenizer,this.tokenizer.options=this.options,this.tokenizer.lexer=this,this.inlineQueue=[],this.state={inLink:!1,inRawBlock:!1,top:!0};const n={block:m.normal,inline:w.normal};this.options.pedantic?(n.block=m.pedantic,n.inline=w.pedantic):this.options.gfm&&(n.block=m.gfm,this.options.breaks?n.inline=w.breaks:n.inline=w.gfm),this.tokenizer.rules=n}static get rules(){return{block:m,inline:w}}static lex(e,t){return new _(t).lex(e)}static lexInline(e,t){return new _(t).inlineTokens(e)}lex(e){let t;for(e=e.replace(/\r\n|\r/g,"\n"),this.blockTokens(e,this.tokens);t=this.inlineQueue.shift();)this.inlineTokens(t.src,t.tokens);return this.tokens}blockTokens(e,t=[]){let n,s,r,i;for(e=this.options.pedantic?e.replace(/\t/g,"    ").replace(/^ +$/gm,""):e.replace(/^( *)(\t+)/gm,((e,t,n)=>t+"    ".repeat(n.length)));e;)if(!(this.options.extensions&&this.options.extensions.block&&this.options.extensions.block.some((s=>!!(n=s.call({lexer:this},e,t))&&(e=e.substring(n.raw.length),t.push(n),!0)))))if(n=this.tokenizer.space(e))e=e.substring(n.raw.length),1===n.raw.length&&t.length>0?t[t.length-1].raw+="\n":t.push(n);else if(n=this.tokenizer.code(e))e=e.substring(n.raw.length),s=t[t.length-1],!s||"paragraph"!==s.type&&"text"!==s.type?t.push(n):(s.raw+="\n"+n.raw,s.text+="\n"+n.text,this.inlineQueue[this.inlineQueue.length-1].src=s.text);else if(n=this.tokenizer.fences(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.heading(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.hr(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.blockquote(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.list(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.html(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.def(e))e=e.substring(n.raw.length),s=t[t.length-1],!s||"paragraph"!==s.type&&"text"!==s.type?this.tokens.links[n.tag]||(this.tokens.links[n.tag]={href:n.href,title:n.title}):(s.raw+="\n"+n.raw,s.text+="\n"+n.raw,this.inlineQueue[this.inlineQueue.length-1].src=s.text);else if(n=this.tokenizer.table(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.lheading(e))e=e.substring(n.raw.length),t.push(n);else{if(r=e,this.options.extensions&&this.options.extensions.startBlock){let t=1/0;const n=e.slice(1);let s;this.options.extensions.startBlock.forEach((e=>{s=e.call({lexer:this},n),"number"==typeof s&&s>=0&&(t=Math.min(t,s))})),t<1/0&&t>=0&&(r=e.substring(0,t+1))}if(this.state.top&&(n=this.tokenizer.paragraph(r)))s=t[t.length-1],i&&"paragraph"===s.type?(s.raw+="\n"+n.raw,s.text+="\n"+n.text,this.inlineQueue.pop(),this.inlineQueue[this.inlineQueue.length-1].src=s.text):t.push(n),i=r.length!==e.length,e=e.substring(n.raw.length);else if(n=this.tokenizer.text(e))e=e.substring(n.raw.length),s=t[t.length-1],s&&"text"===s.type?(s.raw+="\n"+n.raw,s.text+="\n"+n.text,this.inlineQueue.pop(),this.inlineQueue[this.inlineQueue.length-1].src=s.text):t.push(n);else if(e){const t="Infinite loop on byte: "+e.charCodeAt(0);if(this.options.silent){console.error(t);break}throw new Error(t)}}return this.state.top=!0,t}inline(e,t=[]){return this.inlineQueue.push({src:e,tokens:t}),t}inlineTokens(e,t=[]){let n,s,r,i,l,o,a=e;if(this.tokens.links){const e=Object.keys(this.tokens.links);if(e.length>0)for(;null!=(i=this.tokenizer.rules.inline.reflinkSearch.exec(a));)e.includes(i[0].slice(i[0].lastIndexOf("[")+1,-1))&&(a=a.slice(0,i.index)+"["+"a".repeat(i[0].length-2)+"]"+a.slice(this.tokenizer.rules.inline.reflinkSearch.lastIndex))}for(;null!=(i=this.tokenizer.rules.inline.blockSkip.exec(a));)a=a.slice(0,i.index)+"["+"a".repeat(i[0].length-2)+"]"+a.slice(this.tokenizer.rules.inline.blockSkip.lastIndex);for(;null!=(i=this.tokenizer.rules.inline.anyPunctuation.exec(a));)a=a.slice(0,i.index)+"++"+a.slice(this.tokenizer.rules.inline.anyPunctuation.lastIndex);for(;e;)if(l||(o=""),l=!1,!(this.options.extensions&&this.options.extensions.inline&&this.options.extensions.inline.some((s=>!!(n=s.call({lexer:this},e,t))&&(e=e.substring(n.raw.length),t.push(n),!0)))))if(n=this.tokenizer.escape(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.tag(e))e=e.substring(n.raw.length),s=t[t.length-1],s&&"text"===n.type&&"text"===s.type?(s.raw+=n.raw,s.text+=n.text):t.push(n);else if(n=this.tokenizer.link(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.reflink(e,this.tokens.links))e=e.substring(n.raw.length),s=t[t.length-1],s&&"text"===n.type&&"text"===s.type?(s.raw+=n.raw,s.text+=n.text):t.push(n);else if(n=this.tokenizer.emStrong(e,a,o))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.codespan(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.br(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.del(e))e=e.substring(n.raw.length),t.push(n);else if(n=this.tokenizer.autolink(e))e=e.substring(n.raw.length),t.push(n);else if(this.state.inLink||!(n=this.tokenizer.url(e))){if(r=e,this.options.extensions&&this.options.extensions.startInline){let t=1/0;const n=e.slice(1);let s;this.options.extensions.startInline.forEach((e=>{s=e.call({lexer:this},n),"number"==typeof s&&s>=0&&(t=Math.min(t,s))})),t<1/0&&t>=0&&(r=e.substring(0,t+1))}if(n=this.tokenizer.inlineText(r))e=e.substring(n.raw.length),"_"!==n.raw.slice(-1)&&(o=n.raw.slice(-1)),l=!0,s=t[t.length-1],s&&"text"===s.type?(s.raw+=n.raw,s.text+=n.text):t.push(n);else if(e){const t="Infinite loop on byte: "+e.charCodeAt(0);if(this.options.silent){console.error(t);break}throw new Error(t)}}else e=e.substring(n.raw.length),t.push(n);return t}}class y{options;constructor(t){this.options=t||e.defaults}code(e,t,n){const s=(t||"").match(/^\S*/)?.[0];return e=e.replace(/\n$/,"")+"\n",s?'<pre><code class="language-'+c(s)+'">'+(n?e:c(e,!0))+"</code></pre>\n":"<pre><code>"+(n?e:c(e,!0))+"</code></pre>\n"}blockquote(e){return`<blockquote>\n${e}</blockquote>\n`}html(e,t){return e}heading(e,t,n){return`<h${t}>${e}</h${t}>\n`}hr(){return"<hr>\n"}list(e,t,n){const s=t?"ol":"ul";return"<"+s+(t&&1!==n?' start="'+n+'"':"")+">\n"+e+"</"+s+">\n"}listitem(e,t,n){return`<li>${e}</li>\n`}checkbox(e){return"<input "+(e?'checked="" ':"")+'disabled="" type="checkbox">'}paragraph(e){return`<p>${e}</p>\n`}table(e,t){return t&&(t=`<tbody>${t}</tbody>`),"<table>\n<thead>\n"+e+"</thead>\n"+t+"</table>\n"}tablerow(e){return`<tr>\n${e}</tr>\n`}tablecell(e,t){const n=t.header?"th":"td";return(t.align?`<${n} align="${t.align}">`:`<${n}>`)+e+`</${n}>\n`}strong(e){return`<strong>${e}</strong>`}em(e){return`<em>${e}</em>`}codespan(e){return`<code>${e}</code>`}br(){return"<br>"}del(e){return`<del>${e}</del>`}link(e,t,n){const s=g(e);if(null===s)return n;let r='<a href="'+(e=s)+'"';return t&&(r+=' title="'+t+'"'),r+=">"+n+"</a>",r}image(e,t,n){const s=g(e);if(null===s)return n;let r=`<img src="${e=s}" alt="${n}"`;return t&&(r+=` title="${t}"`),r+=">",r}text(e){return e}}class ${strong(e){return e}em(e){return e}codespan(e){return e}del(e){return e}html(e){return e}text(e){return e}link(e,t,n){return""+n}image(e,t,n){return""+n}br(){return""}}class z{options;renderer;textRenderer;constructor(t){this.options=t||e.defaults,this.options.renderer=this.options.renderer||new y,this.renderer=this.options.renderer,this.renderer.options=this.options,this.textRenderer=new $}static parse(e,t){return new z(t).parse(e)}static parseInline(e,t){return new z(t).parseInline(e)}parse(e,t=!0){let n="";for(let s=0;s<e.length;s++){const r=e[s];if(this.options.extensions&&this.options.extensions.renderers&&this.options.extensions.renderers[r.type]){const e=r,t=this.options.extensions.renderers[e.type].call({parser:this},e);if(!1!==t||!["space","hr","heading","code","table","blockquote","list","html","paragraph","text"].includes(e.type)){n+=t||"";continue}}switch(r.type){case"space":continue;case"hr":n+=this.renderer.hr();continue;case"heading":{const e=r;n+=this.renderer.heading(this.parseInline(e.tokens),e.depth,this.parseInline(e.tokens,this.textRenderer).replace(h,((e,t)=>"colon"===(t=t.toLowerCase())?":":"#"===t.charAt(0)?"x"===t.charAt(1)?String.fromCharCode(parseInt(t.substring(2),16)):String.fromCharCode(+t.substring(1)):"")));continue}case"code":{const e=r;n+=this.renderer.code(e.text,e.lang,!!e.escaped);continue}case"table":{const e=r;let t="",s="";for(let t=0;t<e.header.length;t++)s+=this.renderer.tablecell(this.parseInline(e.header[t].tokens),{header:!0,align:e.align[t]});t+=this.renderer.tablerow(s);let i="";for(let t=0;t<e.rows.length;t++){const n=e.rows[t];s="";for(let t=0;t<n.length;t++)s+=this.renderer.tablecell(this.parseInline(n[t].tokens),{header:!1,align:e.align[t]});i+=this.renderer.tablerow(s)}n+=this.renderer.table(t,i);continue}case"blockquote":{const e=r,t=this.parse(e.tokens);n+=this.renderer.blockquote(t);continue}case"list":{const e=r,t=e.ordered,s=e.start,i=e.loose;let l="";for(let t=0;t<e.items.length;t++){const n=e.items[t],s=n.checked,r=n.task;let o="";if(n.task){const e=this.renderer.checkbox(!!s);i?n.tokens.length>0&&"paragraph"===n.tokens[0].type?(n.tokens[0].text=e+" "+n.tokens[0].text,n.tokens[0].tokens&&n.tokens[0].tokens.length>0&&"text"===n.tokens[0].tokens[0].type&&(n.tokens[0].tokens[0].text=e+" "+n.tokens[0].tokens[0].text)):n.tokens.unshift({type:"text",text:e+" "}):o+=e+" "}o+=this.parse(n.tokens,i),l+=this.renderer.listitem(o,r,!!s)}n+=this.renderer.list(l,t,s);continue}case"html":{const e=r;n+=this.renderer.html(e.text,e.block);continue}case"paragraph":{const e=r;n+=this.renderer.paragraph(this.parseInline(e.tokens));continue}case"text":{let i=r,l=i.tokens?this.parseInline(i.tokens):i.text;for(;s+1<e.length&&"text"===e[s+1].type;)i=e[++s],l+="\n"+(i.tokens?this.parseInline(i.tokens):i.text);n+=t?this.renderer.paragraph(l):l;continue}default:{const e='Token with "'+r.type+'" type was not found.';if(this.options.silent)return console.error(e),"";throw new Error(e)}}}return n}parseInline(e,t){t=t||this.renderer;let n="";for(let s=0;s<e.length;s++){const r=e[s];if(this.options.extensions&&this.options.extensions.renderers&&this.options.extensions.renderers[r.type]){const e=this.options.extensions.renderers[r.type].call({parser:this},r);if(!1!==e||!["escape","html","link","image","strong","em","codespan","br","del","text"].includes(r.type)){n+=e||"";continue}}switch(r.type){case"escape":{const e=r;n+=t.text(e.text);break}case"html":{const e=r;n+=t.html(e.text);break}case"link":{const e=r;n+=t.link(e.href,e.title,this.parseInline(e.tokens,t));break}case"image":{const e=r;n+=t.image(e.href,e.title,e.text);break}case"strong":{const e=r;n+=t.strong(this.parseInline(e.tokens,t));break}case"em":{const e=r;n+=t.em(this.parseInline(e.tokens,t));break}case"codespan":{const e=r;n+=t.codespan(e.text);break}case"br":n+=t.br();break;case"del":{const e=r;n+=t.del(this.parseInline(e.tokens,t));break}case"text":{const e=r;n+=t.text(e.text);break}default:{const e='Token with "'+r.type+'" type was not found.';if(this.options.silent)return console.error(e),"";throw new Error(e)}}}return n}}class T{options;constructor(t){this.options=t||e.defaults}static passThroughHooks=new Set(["preprocess","postprocess"]);preprocess(e){return e}postprocess(e){return e}}class R{defaults={async:!1,breaks:!1,extensions:null,gfm:!0,hooks:null,pedantic:!1,renderer:null,silent:!1,tokenizer:null,walkTokens:null};options=this.setOptions;parse=this.#e(_.lex,z.parse);parseInline=this.#e(_.lexInline,z.parseInline);Parser=z;Renderer=y;TextRenderer=$;Lexer=_;Tokenizer=b;Hooks=T;constructor(...e){this.use(...e)}walkTokens(e,t){let n=[];for(const s of e)switch(n=n.concat(t.call(this,s)),s.type){case"table":{const e=s;for(const s of e.header)n=n.concat(this.walkTokens(s.tokens,t));for(const s of e.rows)for(const e of s)n=n.concat(this.walkTokens(e.tokens,t));break}case"list":{const e=s;n=n.concat(this.walkTokens(e.items,t));break}default:{const e=s;this.defaults.extensions?.childTokens?.[e.type]?this.defaults.extensions.childTokens[e.type].forEach((s=>{n=n.concat(this.walkTokens(e[s],t))})):e.tokens&&(n=n.concat(this.walkTokens(e.tokens,t)))}}return n}use(...e){const t=this.defaults.extensions||{renderers:{},childTokens:{}};return e.forEach((e=>{const n={...e};if(n.async=this.defaults.async||n.async||!1,e.extensions&&(e.extensions.forEach((e=>{if(!e.name)throw new Error("extension name required");if("renderer"in e){const n=t.renderers[e.name];t.renderers[e.name]=n?function(...t){let s=e.renderer.apply(this,t);return!1===s&&(s=n.apply(this,t)),s}:e.renderer}if("tokenizer"in e){if(!e.level||"block"!==e.level&&"inline"!==e.level)throw new Error("extension level must be 'block' or 'inline'");const n=t[e.level];n?n.unshift(e.tokenizer):t[e.level]=[e.tokenizer],e.start&&("block"===e.level?t.startBlock?t.startBlock.push(e.start):t.startBlock=[e.start]:"inline"===e.level&&(t.startInline?t.startInline.push(e.start):t.startInline=[e.start]))}"childTokens"in e&&e.childTokens&&(t.childTokens[e.name]=e.childTokens)})),n.extensions=t),e.renderer){const t=this.defaults.renderer||new y(this.defaults);for(const n in e.renderer){const s=e.renderer[n],r=n,i=t[r];t[r]=(...e)=>{let n=s.apply(t,e);return!1===n&&(n=i.apply(t,e)),n||""}}n.renderer=t}if(e.tokenizer){const t=this.defaults.tokenizer||new b(this.defaults);for(const n in e.tokenizer){const s=e.tokenizer[n],r=n,i=t[r];t[r]=(...e)=>{let n=s.apply(t,e);return!1===n&&(n=i.apply(t,e)),n}}n.tokenizer=t}if(e.hooks){const t=this.defaults.hooks||new T;for(const n in e.hooks){const s=e.hooks[n],r=n,i=t[r];T.passThroughHooks.has(n)?t[r]=e=>{if(this.defaults.async)return Promise.resolve(s.call(t,e)).then((e=>i.call(t,e)));const n=s.call(t,e);return i.call(t,n)}:t[r]=(...e)=>{let n=s.apply(t,e);return!1===n&&(n=i.apply(t,e)),n}}n.hooks=t}if(e.walkTokens){const t=this.defaults.walkTokens,s=e.walkTokens;n.walkTokens=function(e){let n=[];return n.push(s.call(this,e)),t&&(n=n.concat(t.call(this,e))),n}}this.defaults={...this.defaults,...n}})),this}setOptions(e){return this.defaults={...this.defaults,...e},this}lexer(e,t){return _.lex(e,t??this.defaults)}parser(e,t){return z.parse(e,t??this.defaults)}#e(e,t){return(n,s)=>{const r={...s},i={...this.defaults,...r};!0===this.defaults.async&&!1===r.async&&(i.silent||console.warn("marked(): The async option was set to true by an extension. The async: false option sent to parse will be ignored."),i.async=!0);const l=this.#t(!!i.silent,!!i.async);if(null==n)return l(new Error("marked(): input parameter is undefined or null"));if("string"!=typeof n)return l(new Error("marked(): input parameter is of type "+Object.prototype.toString.call(n)+", string expected"));if(i.hooks&&(i.hooks.options=i),i.async)return Promise.resolve(i.hooks?i.hooks.preprocess(n):n).then((t=>e(t,i))).then((e=>i.walkTokens?Promise.all(this.walkTokens(e,i.walkTokens)).then((()=>e)):e)).then((e=>t(e,i))).then((e=>i.hooks?i.hooks.postprocess(e):e)).catch(l);try{i.hooks&&(n=i.hooks.preprocess(n));const s=e(n,i);i.walkTokens&&this.walkTokens(s,i.walkTokens);let r=t(s,i);return i.hooks&&(r=i.hooks.postprocess(r)),r}catch(e){return l(e)}}}#t(e,t){return n=>{if(n.message+="\nPlease report this to https://github.com/markedjs/marked.",e){const e="<p>An error occurred:</p><pre>"+c(n.message+"",!0)+"</pre>";return t?Promise.resolve(e):e}if(t)return Promise.reject(n);throw n}}}const S=new R;function A(e,t){return S.parse(e,t)}A.options=A.setOptions=function(e){return S.setOptions(e),A.defaults=S.defaults,n(A.defaults),A},A.getDefaults=t,A.defaults=e.defaults,A.use=function(...e){return S.use(...e),A.defaults=S.defaults,n(A.defaults),A},A.walkTokens=function(e,t){return S.walkTokens(e,t)},A.parseInline=S.parseInline,A.Parser=z,A.parser=z.parse,A.Renderer=y,A.TextRenderer=$,A.Lexer=_,A.lexer=_.lex,A.Tokenizer=b,A.Hooks=T,A.parse=A;const I=A.options,E=A.setOptions,Z=A.use,q=A.walkTokens,L=A.parseInline,D=A,P=z.parse,v=_.lex;e.Hooks=T,e.Lexer=_,e.Marked=R,e.Parser=z,e.Renderer=y,e.TextRenderer=$,e.Tokenizer=b,e.getDefaults=t,e.lexer=v,e.marked=A,e.options=I,e.parse=D,e.parseInline=L,e.parser=P,e.setOptions=E,e.use=Z,e.walkTokens=q}));
+</script>
 <style>
 :root{
   --bg:#0e0f11;--surface:#16181c;--border:#2a2d35;
@@ -30,7 +36,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 #progress-bar{width:80px;height:2px;background:var(--border);border-radius:1px;overflow:hidden}
 #progress-fill{height:100%;background:var(--accent);border-radius:1px;transition:width .3s ease}
 #stage{flex:1;display:flex;align-items:stretch;overflow:hidden;position:relative}
-.slide{position:absolute;inset:0;padding:52px 80px 40px;display:flex;flex-direction:column;justify-content:center;opacity:0;transform:translateX(40px);transition:opacity .28s ease,transform .28s ease;pointer-events:none;overflow-y:auto}
+.slide{position:absolute;inset:0;padding:52px 80px 40px;display:flex;flex-direction:column;justify-content:flex-start;align-items:center;opacity:0;transform:translateX(40px);transition:opacity .28s ease,transform .28s ease;pointer-events:none;overflow-y:auto}
+.slide>*{width:100%;max-width:860px}
 .slide.active{opacity:1;transform:translateX(0);pointer-events:auto}
 @media(min-width:900px){.slide{padding:58px 100px 46px}}
 .section-label{font-size:10px;letter-spacing:.15em;text-transform:uppercase;color:var(--accent);margin-bottom:24px;font-family:var(--font-mono);flex-shrink:0}
@@ -43,7 +50,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 .slide-quote blockquote{border-left:3px solid var(--accent);padding-left:28px;margin:0 0 20px;max-width:780px}
 .slide-quote blockquote p{font-family:var(--font-head);font-size:clamp(16px,1.9vw,23px);font-style:italic;color:var(--text);line-height:1.55}
 .slide-quote blockquote p em{color:var(--accent);font-style:normal}
-.slide h2{font-family:var(--font-head);font-size:clamp(20px,2.6vw,34px);font-weight:400;color:var(--text);margin-bottom:28px;line-height:1.25;border-bottom:0.5px solid var(--border);padding-bottom:14px;flex-shrink:0}
+.slide h2{font-family:var(--font-head);font-size:clamp(20px,2.6vw,34px);font-weight:400;color:var(--text);margin-bottom:48px;line-height:1.25;border-bottom:0.5px solid var(--border);padding-bottom:14px;flex-shrink:0}
 .slide p{font-size:clamp(13px,1.45vw,17px);line-height:1.7;color:var(--text);max-width:780px;margin-bottom:14px}
 .slide p em{color:var(--accent);font-style:italic}
 .slide p strong{color:var(--accent2);font-weight:500}
@@ -59,6 +66,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 .slide pre{background:var(--code-bg);border:0.5px solid var(--border);border-left:3px solid var(--accent2);border-radius:6px;padding:18px 22px;margin:0 0 18px;overflow-x:auto;max-width:860px;flex-shrink:0}
 .slide pre code{font-family:var(--font-mono);font-size:clamp(10px,1vw,13px);line-height:1.65;color:#a8c4cc}
 .slide code:not(pre code){font-family:var(--font-mono);font-size:.87em;background:var(--code-bg);border:0.5px solid var(--border);padding:1px 5px;border-radius:3px;color:var(--accent2)}
+.slide img{max-width:100%;max-height:45vh;height:auto;display:block;margin:0 auto 18px;border-radius:4px;border:0.5px solid var(--border)}
 .slide table{border-collapse:collapse;width:100%;max-width:860px;margin-bottom:18px;font-size:clamp(11px,1.2vw,14px)}
 .slide th{background:var(--code-bg);color:var(--accent);font-weight:500;font-family:var(--font-mono);font-size:.84em;letter-spacing:.04em;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border)}
 .slide td{padding:8px 13px;border-bottom:0.5px solid var(--border);color:var(--text);vertical-align:top}
@@ -111,7 +119,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 </div>
 
 <script>
-// ── Section manifest (generated by md2slides.py 1.0.0) ──
+// ── Section manifest (generated by md2slides.py 1.1.0) ──
 const SECTIONS = [
   {
     "file": "section1.md",
@@ -125,8 +133,8 @@ const SECTIONS = [
   },
   {
     "file": "section3.md",
-    "label": "3 · Git e i corpora parlati: il …",
-    "chip": "Part 3 · Git e i corpora parlati: il caso specifico"
+    "label": "3 · The KIParla pivot format",
+    "chip": "Part 3 · The KIParla pivot format"
   },
   {
     "file": "section4.md",
@@ -250,7 +258,8 @@ document.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedT
 const FALLBACKS = {
   "section1.md": `# Git as a Collaborative Environment for Multilayer Spoken Resource Development
 
-**Summer School Lab · Part 1 of 4**
+**Speech Matters Spring School**
+
 Dr. Ludovica Pannitto — Università di Bologna
 
 ---
@@ -275,17 +284,19 @@ Dr. Ludovica Pannitto — Università di Bologna
 
 ## The multilayer problem
 
-A spoken corpus is not a text. It is a **stratification of interpretive layers**:
+A spoken corpus is not a text.
+
+It is a **stratification of interpretive layers**:
 
 \`\`\`
 raw audio
   └── pseudonymized audio              [GDPR pipeline]
-        └── Jefferson transcription    [ELAN / expert linguist]
-              └── orthographic form    [normalization scripts]
-                    └── morphosyntax   [POS tagger + manual revision]
-                          └── syntax   [UD treebank annotation]
-                                └── speech acts / pragmatics   [manual annotation]
-                                      └── metadata
+   |    └── transcription              [ELAN / expert linguist]
+   |          └── orthographic form    [normalization scripts]
+   |              | └── morphosyntax   [POS tagger + manual revision]
+   |              |       └── syntax   [UD treebank annotation]
+   |              └──────────────── speech acts / pragmatics   [manual annotation]
+   └──────────────────────────────────────────── metadata
 \`\`\`
 
 Each layer: different person · different tool · different time
@@ -328,6 +339,14 @@ linearized exports
     └── verticalized .vert           [NoSketchEngine, Sketch Engine]
 \`\`\`
 
+**The deeper problem**: many of the derived formats, tools, and pipelines were not designed with spoken interaction in mind.
+They do not model:
+- the **speaker** as a social agent producing situated language
+- the **interactional setting** — who is talking to whom, under what circumstances
+- **spoken-language specifics** — overlap, repair, prosody, turn-taking, disfluency
+
+They were built for monological linear text, then retrofitted for spoken language and interaction.
+
 **Problems with the current pipeline**:
 
 - The pipeline is a *one-way street* — upstream corrections do not propagate to downstream layers or exports
@@ -341,11 +360,15 @@ linearized exports
 
 The linear model treats ELAN as the authoritative source. Every derived format is a dead end — a correction to the source does not reach the outputs, and there is no path back.
 
-**The pivot model** replaces this with a single maintained representation at the centre:
+We argue for the introduction of a **pivot model**, which replaces the pipeline with a single maintained representation at the centre:
 
 ![Pivot architecture: TSV format at centre, derived formats around it with bidirectional conversion](assets/pivot-architecture.svg)
 
-The pivot is a **verticalized, pseudo-tokenized TSV** — one token per row, enriched with lexical, prosodic, interactional, and alignment features. From it, all formats are reproducibly derived by conversion scripts. Crucially, the architecture is **bidirectional**: corrections applied at the pivot level propagate to all derived formats.
+In the case of KIParla, the pivot is a **verticalized, pseudo-tokenized TSV** — one token per row, enriched with lexical, prosodic, interactional, and alignment features. From it, all formats are reproducibly derived by conversion scripts.
+
+Crucially, the architecture is **bidirectional**: corrections applied at the pivot level propagate to all derived formats and vice versa, without breaking annotation on the rest of the resource.
+
+For this to work, the pivot format must satisfy four requirements:
 
 - **Version-controlled** — every change is a commit; full history is preserved
 - **Validated at ingestion** — well-formedness constraints enforced before any format is generated
@@ -363,7 +386,9 @@ In ELAN, these three utterances appear **side by side** on a shared timeline:
 ![ELAN view of KPN006 — overlapping turns across three speaker tiers](assets/elan-kipn006.png)
 
 > PKP019: \`eh (.) se no dice là si fa [c~] (.) si fa casotto\`
+>
 > PKP014: \`[sì sì sì]\`  ← overlaps with PKP019
+>
 > PKP020: \`>fa vedere<\`  ← overlaps near the end
 
 In the .eaf XML, they live **3000+ lines apart**:
@@ -393,34 +418,27 @@ In the .eaf XML, they live **3000+ lines apart**:
 - Additional annotation layers are **external or tool-dependent**
 - No path to add morphosyntax, prosody, or speech acts without breaking the format
 
-**The deeper problem**: these formats, tools, and pipelines were not designed with spoken interaction in mind. They do not model:
-- the **speaker** as a social agent producing situated language
-- the **interactional setting** — who is talking to whom, under what circumstances
-- **spoken-language specifics** — overlap, repair, prosody, turn-taking, disfluency
-
-They were built for text, then retrofitted for speech.
-
 ---
 
-## What goes wrong without version control
+## What goes wrong with widely adopted pipelines
 
-| Problem                  | Consequence                              |
-| ------------------------ | ---------------------------------------- |
-| Opaque pipeline          | Cannot retrace annotation decisions      |
-| Non-reversible edits     | Ad-hoc choices crystallize permanently   |
-| Single expert bottleneck | Knowledge locked in one person; infrastructure becomes unintelligible to the rest of the team |
-| No adjudication trail    | Inter-annotator disagreement invisible   |
-| Static releases          | Errors cannot be corrected incrementally |
-| Undocumented format migration | Each conversion introduces silent distortions of meaning |
-| Technical and conceptual debt | Earlier shortcuts constrain every future transformation |
+| Problem                       | Consequence                                                                                   |
+| ----------------------------- | --------------------------------------------------------------------------------------------- |
+| Opaqueness                    | Cannot retrace annotation decisions                                                           |
+| Non-reversible edits          | Ad-hoc choices crystallize permanently                                                        |
+| Single expert bottleneck      | Knowledge locked in one person; infrastructure becomes unintelligible to the rest of the team |
+| No adjudication trail         | Inter-annotator disagreement invisible                                                        |
+| Static releases               | Errors cannot be corrected incrementally                                                      |
+| Undocumented format migration | Each conversion introduces silent distortions of meaning                                      |
+| Technical and conceptual debt | Earlier shortcuts constrain every future transformation                                       |
 
 ---
 
 ## The invisible cost of infrastructure
 
-> "Digital Humanities projects often struggle not because of analytical complexity, but because of **fragile data workflows**, undocumented transformations, and ad hoc collaboration practices."
->
-> — Pannitto (submitted)
+> Digital Humanities projects often struggle not because of analytical complexity,
+> but because of **fragile data workflows**, undocumented transformations,
+> and ad hoc collaboration practices.
 
 Infrastructure work is invisible — until it breaks. When it does, the cost is:
 
@@ -428,15 +446,20 @@ Infrastructure work is invisible — until it breaks. When it does, the cost is:
 - **Misalignment between layers**: each format drifts independently
 - **Unintelligible archives**: corpora that become opaque artifacts rather than reusable research objects
 
-The standard response is to delegate all of this to a single technical expert. This creates its own risk: when that person leaves, the infrastructure becomes unmaintainable.
+The standard response is to delegate all of this to a single technical expert.
+This creates its own risk: when that person leaves, the infrastructure becomes unmaintainable.
 
-The alternative is **distributed computational literacy** — shared understanding of version control, transformation logic, and documentation practices across the whole team. Not turning linguists into software engineers, but ensuring no one is left unable to navigate the systems that sustain their own research.
+The alternative is **distributed computational literacy** — shared understanding of version control,
+transformation logic, and documentation practices across the whole team.
+Not turning linguists into software engineers, but ensuring no one is left unable to navigate the systems
+that sustain their own research.
 
 ---
 
-## The standard of practice landscape
+## Why a new format?
 
-Spoken language research is characterised **not by a lack of standards, but by the coexistence of partially incompatible ones**, each optimised for a specific stage of the data lifecycle.
+Spoken language research is characterised **not by a lack of standards, but by the coexistence of partially incompatible ones**,
+each optimised for a specific stage of the data lifecycle.
 
 | Format              | Strength                                     | Limitation                              |
 | ------------------- | -------------------------------------------- | --------------------------------------- |
@@ -451,7 +474,8 @@ Spoken language research is characterised **not by a lack of standards, but by t
 
 ## FAIR data vs FAIR processes
 
-> "Interoperability is not achieved through adherence to formats and standards, but through the **alignment of curatorial practices**."
+> "Interoperability is not achieved through adherence to formats and standards,
+> but through the **alignment of curatorial practices**."
 >
 > — Pannitto & Mauri (2025)
 
@@ -463,19 +487,20 @@ Spoken language research is characterised **not by a lack of standards, but by t
 
 ## Corpora as living artefacts
 
-> "Dataset curation increasingly resembles a form of **continuous development**, rather than a linear production pipeline culminating in a static release."
+> "Dataset curation increasingly resembles a form of **continuous development**,
+> rather than a linear production pipeline culminating in a static release."
 >
 > — Pannitto & Mauri (2025)
 
 New data are added · Errors are corrected · Formats evolve · New reuse scenarios emerge
 
-→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself
-
-Without explicit documentation of data models, processing steps, and dependencies, archived corpora risk becoming **opaque artifacts** rather than reusable research objects — intelligible only to whoever built them, and only for as long as that person is available.
+→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself — and software engineering already has mature tools for exactly this. We do not need to reinvent the wheel.
 
 ---
 
 ## The DevOps analogy
+
+**DevOps** (**Dev**elopment + **Op**erations) is a set of practices from software engineering that breaks down the traditional wall between the people who *write* code and the people who *deploy and maintain* it. The combined workflow treats development as a *continuous, collaborative, and automated* process — rather than a sequence of isolated handoffs. Its core idea: every change is tracked, every build is reproducible, and quality is enforced automatically before anything reaches production.
 
 | Software development | Corpus development                     |
 | -------------------- | -------------------------------------- |
@@ -490,17 +515,17 @@ Without explicit documentation of data models, processing steps, and dependencie
 
 ---
 
-## What we want
+## The answer already exists
 
-A workflow that is:
+Software engineers faced the same problems decades ago — distributed teams, evolving artifacts, the need to track every change and recover from every mistake — and built tools to solve them.
 
-- **Transparent** — full record of every annotation decision
-- **Efficient** — automated validation and conversion
-- **Consistent** — schema enforcement before merge
-- **Participatory** — open to community contributions and corrections
-- **Reversible** — any change can be traced and undone
+Those tools are:
 
-→ This is exactly what **Git** (a software) and **GitHub** (a platform, out of many) were built for
+- **Git** — version control: every change is a commit, every state is recoverable
+- **GitHub / GitLab** — collaboration platforms: review, discussion, and automation built in
+- **CI/CD** — automated pipelines: validation and conversion run on every commit, not manually
+
+We do not need to build new infrastructure. We need to apply existing infrastructure to a new domain.
 
 ---
 
@@ -544,7 +569,7 @@ BOA1010_FINAL_USE_THIS_ONE_v2_corrected_LP.eaf
 
 - Which is the authoritative version?
 - Who made the \`_corrected\` changes, and why?
-- Can you go back to before the last revision round?
+- Do you know exactly what changed from previous version to the last?
 - What happens when two annotators work on different copies?
 
 This is the default state of most annotation projects without version control.
@@ -594,13 +619,13 @@ It allows a team to:
 
 The closest familiar tool is *Track Changes* in word processors. It fails for annotation work because:
 
-| Limitation | Consequence for annotation |
-|---|---|
-| History is **lost on acceptance** | Authorship and rationale vanish once changes are merged |
-| No **parallel branches** | Collaborators must work sequentially or merge manually |
-| **Not plain-text friendly** | Does not work with CoNLL-U, TSV, XML — the formats we actually use |
-| No **programmatic access** | You cannot run a validation script or trigger a conversion |
-| No **conflict detection** | Two people editing the same span silently overwrite each other |
+| Limitation                        | Consequence for annotation                                         |
+| --------------------------------- | ------------------------------------------------------------------ |
+| History is **lost on acceptance** | Authorship and rationale vanish once changes are merged            |
+| No **parallel branches**          | Collaborators must work sequentially or merge manually             |
+| **Not plain-text friendly**       | Does not work with CoNLL-U, TSV, XML — the formats we actually use |
+| No **programmatic access**        | You cannot run a validation script or trigger a conversion         |
+| No **conflict detection**         | Two people editing the same span silently overwrite each other     |
 
 > Track Changes is designed for a document that reaches a final state.
 > A corpus is never final — it is a living artefact.
@@ -611,7 +636,8 @@ The closest familiar tool is *Track Changes* in word processors. It fails for an
 
 ## Git: the most widely used VCS
 
-**Git** is a distributed version control system. Every contributor has a full copy of the repository history.
+**Git** is a distributed version control system.
+Every contributor has a full copy of the repository history.
 
 Key properties:
 - **Free and open source**
@@ -626,7 +652,7 @@ Key properties:
 
 ---
 
-## The five concepts you need
+## The five concepts you need -- and we'll go over during this tutorial
 
 Everything in the Git/GitHub workflow reduces to five ideas:
 
@@ -646,12 +672,24 @@ A **repository** (repo) is a directory whose full history of changes is tracked 
 
 \`\`\`
 my-corpus/
-├── annotations/
-│   ├── BOA1010.conllu
-│   └── PSB054.conllu
-├── scripts/
+├── eaf/                        ← original ELAN transcriptions
+│   ├── BOA1010.eaf
+│   └── PSB054.eaf
+├── pivot/                      ← maintained TSV representation
+│   ├── BOA1010.tsv
+│   └── PSB054.tsv
+├── derived/                    ← formats generated from the pivot
+│   ├── conllu/
+│   │   ├── BOA1010.conllu
+│   │   └── PSB054.conllu
+│   ├── vert/
+│   │   └── corpus.vert
+│   └── jefferson/
+│       └── BOA1010.txt
+├── scripts/                    ← validation and conversion
 │   ├── validate.py
-│   └── convert_to_conllu.py
+│   ├── eaf_to_pivot.py
+│   └── pivot_to_conllu.py
 ├── metadata/
 │   └── speakers.tsv
 └── README.md
@@ -665,9 +703,36 @@ The repo stores:
 
 ---
 
+## Exercise 1 — Create your first repository
+
+\`\`\`bash
+# 1. Create a project folder and enter it
+mkdir my-corpus && cd my-corpus
+
+# 2. Initialise a Git repository
+git init
+
+# 3. Check what Git sees
+git status
+
+# 4. Create a README file
+echo "# My corpus" > README.md
+
+# 5. Check status again — notice README is now "untracked"
+git status
+\`\`\`
+
+**What to observe:**
+- \`git init\` creates a hidden \`.git/\` folder — that is the entire history database
+- \`git status\` reports which files Git knows about and which it does not
+- An untracked file exists on disk but is invisible to Git until you \`git add\` it
+
+---
+
 ## Local and remote repositories
 
-In a distributed VCS, every collaborator has a **full copy** of the repository. Git distinguishes two kinds:
+In a distributed VCS, every collaborator has a **full copy** of the repository.
+Git distinguishes two kinds:
 
 - **Remote repo** — hosted on a server (GitHub, GitLab, institutional server); the shared reference point for the team
 - **Local repo** — on your personal machine; where you actually do your work
@@ -693,6 +758,36 @@ Each annotator works locally and commits at their own pace. Changes reach the sh
 
 ---
 
+## Exercise 2 — Stage and commit
+
+Continuing from Exercise 1:
+
+\`\`\`bash
+# 1. Stage the README
+git add README.md
+
+# 2. Check status — README is now "staged"
+git status
+
+# 3. Make your first commit
+git commit -m "Initial commit: add README"
+
+# 4. View the commit log
+git log --oneline
+
+# 5. Edit the README, then check what Git sees
+echo "Spontaneous spoken Italian corpus" >> README.md
+git status
+git diff README.md
+\`\`\`
+
+**What to observe:**
+- \`git diff\` shows exactly which lines changed before you stage them
+- \`git log\` shows the commit hash, author, timestamp, and message
+- After committing, the working directory is "clean" again
+
+---
+
 ## The four states of a file
 
 Every file in a Git repository is in one of four states:
@@ -715,11 +810,11 @@ Every file in a Git repository is in one of four states:
 
 Three areas a file moves through:
 
-| Area | Location | Role |
-|---|---|---|
-| Working directory | \`project/\` | where you edit |
-| Staging area | \`project/.git/index\` | what goes into the next commit |
-| Git database | \`project/.git/objects\` | permanent history |
+| Area              | Location               | Role                           |
+| ----------------- | ---------------------- | ------------------------------ |
+| Working directory | \`project/\`             | where you edit                 |
+| Staging area      | \`project/.git/index\`   | what goes into the next commit |
+| Git database      | \`project/.git/objects\` | permanent history              |
 
 The staging step lets you commit **some** changes from your working directory while leaving others for a later commit — useful when one session touches multiple annotation files but only one is ready for review.
 
@@ -765,6 +860,36 @@ Lines prefixed \`-\` were removed · lines prefixed \`+\` were added
 
 ---
 
+## Exercise 3 — Browse the history
+
+\`\`\`bash
+# 1. Make two more small commits (add files, edit README, anything)
+echo "speaker_id,age,gender" > metadata/speakers.tsv
+git add metadata/speakers.tsv
+git commit -m "Add speakers metadata stub"
+
+# 2. View the full log
+git log --oneline
+
+# 3. See exactly what changed in a specific commit (use your own hash)
+git show a3f9c12
+
+# 4. Go back and look at a past state — without changing anything
+git checkout HEAD~1 -- README.md   # restore previous version of one file
+git diff README.md                 # see what was different
+git checkout HEAD -- README.md     # put the current version back
+
+# 5. Check that you're back to normal
+git status
+\`\`\`
+
+**What to observe:**
+- \`git show <hash>\` displays the full diff for any past commit
+- \`git checkout <commit> -- <file>\` lets you inspect a past version without rewriting history
+- You can always get back: Git does not forget anything
+
+---
+
 ## Concept 3: Branch
 
 A **branch** is a parallel instance of the repository.
@@ -783,6 +908,36 @@ Rules:
 - When work is ready, it is *proposed* for merging via a pull request
 
 → Parallel annotation without conflicts
+
+---
+
+## Exercise 4 — Create and switch branches
+
+\`\`\`bash
+# 1. Create a new branch for annotation work
+git checkout -b annotator/BOA1010
+
+# 2. Check which branch you are on
+git branch
+
+# 3. Make a change on this branch
+echo "token_id\\tspeaker\\tform" > pivot/BOA1010.tsv
+git add pivot/BOA1010.tsv
+git commit -m "Add BOA1010 pivot stub"
+
+# 4. Switch back to main — the file you just added is not here
+git checkout main
+ls pivot/
+
+# 5. Switch back to your branch — the file reappears
+git checkout annotator/BOA1010
+ls pivot/
+\`\`\`
+
+**What to observe:**
+- \`git branch\` shows all branches; the current one is marked with \`*\`
+- Switching branches changes the working directory — files appear and disappear
+- \`main\` is unaffected by anything you do on your branch
 
 ---
 
@@ -876,12 +1031,39 @@ Triggered on every commit or PR — no manual steps needed.
 
 ---
 
+## Exercise 5 — Push and open a pull request on GitHub
+
+*This exercise requires a GitHub account and a remote repository.*
+
+\`\`\`bash
+# 1. Push your branch to GitHub
+git push -u origin annotator/BOA1010
+\`\`\`
+
+Then in the browser:
+
+1. Go to your repository on GitHub
+2. Click **"Compare & pull request"** (GitHub shows this automatically after a push)
+3. Write a title: \`"Add BOA1010 pivot stub"\`
+4. In the description, explain what you did and why
+5. Click **"Create pull request"**
+6. Browse the **Files changed** tab — this is what a reviewer sees
+7. Leave a comment on a specific line (click the \`+\` that appears on hover)
+8. Merge the PR into \`main\`
+
+**What to observe:**
+- The diff view shows exactly which lines were added or changed
+- Comments are anchored to specific lines and preserved forever
+- After merge, \`main\` contains your changes and the branch can be deleted
+
+---
+
 ## Three actions for annotation workflows
 
-| Action | Triggered by | What it does |
-|---|---|---|
-| **Validate** | Every commit | Checks annotation schema, flags malformed tokens |
-| **Visualize** | Every commit | Renders annotation as a readable PDF/SVG |
+| Action         | Triggered by    | What it does                                        |
+| -------------- | --------------- | --------------------------------------------------- |
+| **Validate**   | Every commit    | Checks annotation schema, flags malformed tokens    |
+| **Visualize**  | Every commit    | Renders annotation as a readable PDF/SVG            |
 | **Statistics** | Merge into main | Updates token counts, label distributions, progress |
 
 → Annotators get *instant feedback* without waiting for a reviewer
@@ -928,7 +1110,26 @@ UD uses GitHub for:
 
 > \`github.com/UniversalDependencies\` — 200+ repositories, thousands of contributors
 
-→ The infrastructure already exists. We are not proposing something new — we are proposing **applying it to spoken corpus work**.
+
+---
+
+## Monitoring the project: Issues and permalinks
+
+Beyond commits and pull requests, GitHub provides two tools for tracking *what is happening and why*:
+
+**Issues** — a structured discussion thread attached to the repository:
+
+- Report an annotation error found after merge
+- Raise a guideline ambiguity ("should overlap marker go on PKP019 or PKP014?")
+- Track a decision to its resolution, with full comment history
+- Link an issue to the commit or PR that fixed it — closes automatically on merge
+
+**Permalinks** — a permanent URL pointing to a specific line or commit:
+
+- \`github.com/.../BOA1010.conllu#L42\` → links to token 42 in the current file
+- \`github.com/.../blob/<commit-hash>/BOA1010.conllu#L42\` → links to that line *as it was at that exact commit*
+
+Together they make the project **auditable**: every annotation decision has a discussion thread; every discussion thread can point to the exact line of data it concerns; every line of data can be traced back to the commit that introduced it.
 
 ---
 
@@ -936,12 +1137,12 @@ UD uses GitHub for:
 
 Annotators unfamiliar with Git face a real barrier. Mitigation strategies:
 
-| Challenge | Solution |
-|---|---|
-| Command line is intimidating | GitHub web editor — edit and commit from the browser |
-| Branch/merge concepts unclear | Visual tools: GitHub Desktop, VS Code Git panel |
-| YAML for Actions is complex | Manager writes Actions once; annotators never touch them |
-| Fear of breaking things | Branches protect \`main\` — mistakes stay local |
+| Challenge                     | Solution                                                 |
+| ----------------------------- | -------------------------------------------------------- |
+| Command line is intimidating  | GitHub web editor — edit and commit from the browser     |
+| Branch/merge concepts unclear | Visual tools: GitHub Desktop, VS Code Git panel          |
+| YAML for Actions is complex   | Manager writes Actions once; annotators never touch them |
+| Fear of breaking things       | Branches protect \`main\` — mistakes stay local            |
 
 > The goal is not to turn linguists into software engineers.
 > The goal is to give annotation projects **the same reliability guarantees** that software projects have.
@@ -955,6 +1156,7 @@ Annotators unfamiliar with Git face a real barrier. Mitigation strategies:
 - A **branch** lets annotators work safely in parallel
 - A **pull request** is the adjudication interface — discussion, review, merge
 - **Actions** automate validation, visualization, and statistics
+- **Issues and permalinks** make the project auditable — every decision has a thread, every thread points to a line
 - The workflow is already proven at scale in Universal Dependencies
 - **Part 3** will re-examine these concepts in the specific context of spoken corpus data: binary audio, GDPR, multilayer formats, and the pivot architecture
 
@@ -970,122 +1172,20 @@ Annotators unfamiliar with Git face a real barrier. Mitigation strategies:
 - Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
 - Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.
 `,
-  "section3.md": `# Git e i corpora parlati: il caso specifico
-
-**Summer School Lab · Part 3 of 4**
-Dr. Ludovica Pannitto — Università di Bologna
+  "section3.md": `# The KIParla pivot format
 
 ---
 
-## Da Part 2 a Part 3
+## Requirements for a Git-friendly pivot format
 
-In Part 2 abbiamo visto come Git e GitHub funzionano in astratto.
+A format suited to version control in Git must be:
 
-**Part 3** affronta il problema concreto: applicare queste pratiche a corpora del parlato, che pongono sfide specifiche che i treebank di testo scritto non hanno.
-
-- File audio binari e di grandi dimensioni
-- Vincoli GDPR sulla diffusione dei dati
-- Formati parzialmente incompatibili tra strumenti diversi
-- Annotazioni stratificate che non possono essere separate
-
-La soluzione è progettare il formato dei dati affinché sia *diff-friendly* fin dall'inizio.
-
----
-
-## Il problema dei file audio in Git
-
-Git è ottimizzato per file di testo a righe brevi. I file audio sono:
-
-- **Binari** — nessun diff leggibile è possibile
-- **Grandi** — decine o centinaia di MB per conversazione
-- **Quasi immutabili** — registrati una volta, raramente modificati
-
-> "Speech data is (a) inefficient to store and transfer with SCM operations, and (b) meaningless to compare at the binary level."
->
-> — Steiner (2017)
-
-→ I file audio **non vanno tracciati in Git** direttamente
-
----
-
-## Strategie per i file audio
-
-| Approccio | Come funziona | Quando usarlo |
-|---|---|---|
-| **Git LFS** | Puntatori in repo, file in storage separato | Audio accessibili via GitHub |
-| **git-annex** | Traccia hash, recupera da remoti multipli | Archivi distribuiti |
-| **Storage esterno** | Audio su server/CLARIN, URL in metadata | Corpus già depositato |
-| **Esclusione da \`.gitignore\`** | Audio non tracciati, solo testo in repo | Sviluppo locale |
-
-**Raccomandazione pratica per corpora linguistici:**
-
-\`\`\`
-# .gitignore
-audio/raw/
-audio/pseudonymized/
-*.wav
-*.flac
-*.mp4
-\`\`\`
-
-Il repo traccia gli *script di pseudonimizzazione* e la *documentazione del processo*, non i file audio stessi.
-
----
-
-## GDPR: cosa può stare in un repo pubblico
-
-I dati del parlato spontaneo contengono informazioni personali identificabili (PII).
-
-\`\`\`
-audio/raw/BOA1010.wav          ← MAI in repo pubblico
-audio/pseudonymized/BOA1010.wav ← accesso controllato
-transcriptions/BOA1010.eaf     ← richiede revisione
-pivot/BOA1010.tsv              ← richiede pseudonimizzazione
-metadata/speakers.tsv          ← NO nomi, solo codici
-\`\`\`
-
-**Cosa può stare nel repo pubblico:**
-- Trascrizioni *dopo* pseudonimizzazione completa
-- Script del pipeline di pseudonimizzazione
-- Metadati anonimi (codici parlante, durata, tipo di testo)
-- Schemi di annotazione, linee guida, documentazione
-- GitHub Actions per validazione e conversione
-
-**Repo privato → repo pubblico** è il modello di rilascio: si lavora in privato, si pubblica la versione pseudonimizzata.
-
----
-
-## Il layering problem e la necessità di un pivot
-
-I formati esistenti sono ottimizzati per fasi diverse del ciclo di vita:
-
-\`\`\`
-ELAN / .eaf      → allineamento temporale, analisi interazionale
-                   ma: XML monolitico, difficile da diff
-CHAT             → convenzioni di trascrizione
-                   ma: non progettato per annotazione NLP su larga scala
-TEI-ISO 24624    → scambio e preservazione
-                   ma: raramente usato come formato operativo
-CoNLL-U          → pipeline NLP, treebank UD
-                   ma: perde struttura interazionale
-\`\`\`
-
-Nessuno di questi formati è adatto come **rappresentazione di lavoro mantenuta in Git**.
-
-→ Serve un *pivot format* che soddisfi contemporaneamente tutti i requisiti
-
----
-
-## Requisiti di un formato pivot per Git
-
-Un formato adatto a essere versioned in Git deve essere:
-
-- **Line-oriented** — ogni riga è un'unità atomica, i diff sono leggibili
-- **Tab-separated plain text** — nessun tool proprietario per aprirlo
-- **Un token per riga** — una modifica di annotazione = una riga cambiata
-- **Auto-documentante** — le intestazioni descrivono ogni colonna
-- **Estensibile per colonne** — nuovi layer si aggiungono senza modificare l'esistente
-- **Invertibile** — dalla rappresentazione pivot si può ricostruire l'originale
+- **Line-oriented** — each line is an atomic unit; diffs are human-readable
+- **Tab-separated plain text** — no proprietary tool required to open it
+- **One token per line** — one annotation change = one line changed
+- **Self-documenting** — column headers describe each layer
+- **Column-extensible** — new layers are added without modifying existing data
+- **Invertible** — the original representation can be reconstructed from the pivot
 
 > "The format is intentionally designed to support incremental correction and version-controlled maintenance: revisions are localised at the level of token identifiers and propagate deterministically to all derived formats."
 >
@@ -1093,176 +1193,188 @@ Un formato adatto a essere versioned in Git deve essere:
 
 ---
 
-## Il formato pivot di KIParla: struttura verticale
+## The KIParla pivot format: vertical structure
 
-Un token per riga. Ogni colonna è un layer di annotazione.
+One token per line. Each column is an annotation layer.
 
 \`\`\`
-token_id  speaker  tu_id  span          form      type        jefferson_feats       align              lemma    upos
-1-1       PSB102   1      ah            ah        linguistic                        AlignBegin=5.12    ah       INTJ
-1-2       PSB102   1      no            no        linguistic                        _                  no       ADV
-1-3       PSB102   1      no:           no        linguistic  Intonation=Rising     _                  no       ADV
-1-4       PSB102   1      [no]          no        linguistic  _                     AlignEnd=6.08      no       ADV
-2-1       PSB054   2      [e]           e         linguistic                        AlignBegin=5.95    e        CCONJ
-2-2       PSB054   2      quindi        quindi    linguistic                        _                  quindi   ADV
+token_id  speaker  tu_id  form      lemma     type        prosody          align            overlap
+175-0     PKP019   175    eh        eh        linguistic  none             Begin=265.732    _
+175-1     PKP019   175    (.)       [PAUSE]   shortpause  none             _                _
+175-2     PKP019   175    se        se        linguistic  none             _                _
+175-8     PKP019   175    [c~]      c~        linguistic  Interrupted=Yes  _                0-2(41)
+175-12    PKP019   175    casotto   casotto   linguistic  none             End=268.952      _
+176-0     PKP014   176    [sì       sì        linguistic  none             Begin=267.392    0-2(41)
+176-2     PKP014   176    sì]       sì        linguistic  none             End=268.162      0-2(41)
+177-0     PKP020   177    >fa       fa        linguistic  none             Begin=268.977    _
+177-1     PKP020   177    vedere<   vedere    linguistic  none             End=269.497      _
 \`\`\`
 
-Un diff su questo file è immediatamente leggibile da un linguista.
+The overlap between TU 175 and TU 176 is encoded via the shared span reference \`0-2(41)\`. A diff on this file is immediately readable by a linguist.
 
 ---
 
-## Perché il TSV verticale è diff-friendly
+## Why the vertical TSV is diff-friendly
 
 \`\`\`diff
-# Correzione del lemma per token 1-3
+# Commit: "fix interrupted token 175-8: lemma should preserve tilde"
 
--1-3  PSB102  1  no:  no  linguistic  Intonation=Rising  _  no    ADV
-+1-3  PSB102  1  no:  no  linguistic  Intonation=Rising  _  no:   ADV
+-175-8  PKP019  175  [c~]  c~   linguistic  Interrupted=Yes  _  0-2(41)
++175-8  PKP019  175  [c~]  c~:  linguistic  Interrupted=Yes  _  0-2(41)
 \`\`\`
 
-- La modifica riguarda **esattamente una riga**
-- Il revisore vede **cosa è cambiato e perché** (nel messaggio di commit)
-- La storia del file mostra **tutte le decisioni di annotazione nel tempo**
-- Lo stesso meccanismo funziona per aggiungere un nuovo layer (nuova colonna)
+- The change affects **exactly one line**
+- The reviewer sees **what changed and why** (in the commit message)
+- The file history shows **every annotation decision over time**
+- The same mechanism works for adding a new layer (new column)
 
-Confrontate con un \`.eaf\` XML: anche una piccola modifica produce centinaia di righe di diff illeggibili.
+Compare with a \`.eaf\` XML file: even a small change produces hundreds of unreadable diff lines.
 
 ---
 
-## Architettura a tre livelli
+## A three-level architecture
 
-Il pivot KIParla formalizza tre livelli espliciti:
+The KIParla pivot formalises three explicit levels:
 
 \`\`\`
-Livello 1: TU (Transcription Unit)
-  └── segmento attribuito a un parlante, ancorato temporalmente
-        validazione: intervallo coerente (end > start), contenuto non vuoto
+Level 1: TU (Transcription Unit)
+  └── speaker-attributed segment, temporally anchored
+        validation: coherent interval (end > start), non-empty content
 
-Livello 2: Span
-  └── fenomeno Jefferson che si estende su sequenze di testo
-        [sovrapposizione], °volume basso°, >velocità alta<
-        validazione: delimitatori bilanciati, ancorati a token esistenti
+Level 2: Span
+  └── Jefferson phenomenon extending across a text sequence
+        [overlap], °quiet voice°, >fast speech<
+        validation: balanced delimiters, anchored to existing tokens
 
-Livello 3: Token
-  └── unità lessicale o para-verbale, localmente ben formata
-        validazione: inventario caratteri, tipo categorico, feature prosodiche
+Level 3: Token
+  └── lexical or para-verbal unit, locally well-formed
+        validation: character inventory, categorical type, prosodic features
 \`\`\`
 
-Ogni livello ha **criteri di validazione espliciti** → GitHub Action di validazione li controlla automaticamente ad ogni commit.
+Each level has **explicit validation criteria** → a GitHub Action can check them automatically on every commit.
 
 ---
 
-## Estensibilità per colonne: aggiungere un layer senza rompere nulla
+## Column extensibility: adding a layer without breaking anything
 
-Il formato a colonne permette di aggiungere nuovi layer di annotazione senza modificare la struttura esistente.
+The columnar format allows new annotation layers to be added without modifying the existing structure.
 
-**Esempio: aggiunta di annotazione sintattica UD**
+**Example: adding UD syntactic annotation**
 
-I token sintattici che richiedono espansione (multiword) vengono inseriti con ID estesi (\`254-1a\`, \`254-1b\`) e marcati come tipo \`syntactic\`. Due colonne aggiuntive (\`lemma\`, \`upos\`) memorizzano le annotazioni UD.
+Syntactic tokens that require expansion (multiword) are inserted with extended IDs (\`254-1a\`, \`254-1b\`) and marked as type \`syntactic\`. Two additional columns (\`lemma\`, \`upos\`) store the UD annotations.
 
 \`\`\`
-# Prima: solo trascrizione
+# Before: transcription only
 token_id  speaker  form    type        jefferson_feats
+
 254-1     PSB102   quindi  linguistic  _
 
-# Dopo: layer UD aggiunto come colonne
+# After: UD layer added as columns
 token_id  speaker  form    type        jefferson_feats  lemma   upos
 254-1     PSB102   quindi  linguistic  _                quindi  ADV
 \`\`\`
 
-→ Backward compatible: chi non usa le nuove colonne le ignora semplicemente.
+→ Backward compatible: anyone not using the new columns simply ignores them.
 
 ---
 
-## Dall'EAF al pivot: il workflow di curatela
+## From EAF to pivot: the curation workflow
 
 \`\`\`
 ELAN (.eaf)
     │
-    ▼  pipeline di validazione (Python)
-    │   ├── validazione TU (coerenza temporale)
-    │   ├── validazione Span (bilanciamento delimitatori)
-    │   └── validazione Token (inventario caratteri, tipi)
+    ▼  validation pipeline (Python)
+    │   ├── TU validation (temporal coherence)
+    │   ├── Span validation (delimiter balancing)
+    │   └── Token validation (character inventory, types)
     │
-    ▼  formato pivot (.tsv)          ← mantenuto in Git
+    ▼  pivot format (.tsv)          ← maintained in Git
     │
-    ├──► CoNLL-U (.conllu)           ← derivato riproducibile
-    ├──► ELAN riesportato (.eaf)     ← derivato riproducibile
-    ├──► NoSketchEngine (.vert)      ← derivato riproducibile
-    └──► KIParla Forest (treebank)   ← derivato riproducibile
+    ├──► CoNLL-U (.conllu)          ← reproducible derived format
+    ├──► re-exported ELAN (.eaf)    ← reproducible derived format
+    ├──► NoSketchEngine (.vert)     ← reproducible derived format
+    └──► KIParla Forest (treebank)  ← reproducible derived format
 \`\`\`
 
-I formati derivati vengono *rigenerati* dal pivot — non mantenuti separatamente.
+Derived formats are *regenerated* from the pivot — not maintained separately.
 
 ---
 
-## Cosa va in Git e cosa no: riepilogo
+## The linguist still works in ELAN
 
-| Artefatto | In Git? | Note |
-|---|---|---|
-| Pivot TSV pseudonimizzato | ✓ sì | Cuore del repo |
-| Script di validazione | ✓ sì | Parte del pipeline |
-| Script di conversione | ✓ sì | Genera i derivati |
-| GitHub Actions (YAML) | ✓ sì | Automazione CI |
-| Linee guida di annotazione | ✓ sì | Documentazione viva |
-| Metadati anonimi | ✓ sì | Codici parlante, durata |
-| File audio (.wav, .flac) | ✗ no | Git LFS o storage esterno |
-| EAF originali non pseudonimizzati | ✗ no | Repo privato o archivio CLARIN |
-| Nomi, indirizzi, dati personali | ✗ mai | Vincolo GDPR |
+The pivot architecture does not require linguists to abandon their tools.
+**ELAN remains the annotation interface** — the pivot is the *storage and versioning* format.
 
----
+The conversion from EAF to pivot can happen at two points:
 
-## Il valore del tracciamento della storia
+\`\`\`
+LINGUIST'S LAPTOP                     SHARED REPOSITORY (GitHub)
+─────────────────────────────────     ──────────────────────────────────
+Works in ELAN as usual
+Saves .eaf locally
 
-Con Git, la storia del corpus è un artefatto di ricerca in sé.
+Option A — local conversion:
+  runs eaf_to_pivot.py
+  reviews pivot diff
+  git add + git commit + git push  →  pivot arrives already validated
 
-\`\`\`bash
-# Chi ha modificato il token 254-1 e quando?
-git log --all -S "254-1" -- pivot/BOA1010.tsv
-
-# Come era annotato questo token sei mesi fa?
-git show HEAD~180:pivot/BOA1010.tsv | grep "^254-1"
-
-# Quali token sono stati corretti dopo la prima release?
-git diff v1.0.0..v1.1.0 -- pivot/
+Option B — push and let Actions run:
+  git add + git commit + git push  →  Action: eaf_to_pivot.py
+                                       Action: validate pivot
+                                       Action: commit pivot to repo
 \`\`\`
 
-→ La storia dei commit **è** la documentazione delle decisioni curatoriali. Sostituisce (e supera) i changelog manuali.
+Both paths produce the same outcome: **the pivot in the shared repo is always the authoritative, validated version**.
+Linguists who are comfortable with the command line can run the conversion locally and review the diff before pushing; those who are not can push the EAF and let the Action handle it.
+
+The EAF files can be kept in the repo too — in \`eaf/\` — for reference and reproducibility, but they are **not** what Git is tracking for annotation changes.
 
 ---
 
-## Versioni e rilasci: corpora come software
+## The value of history tracking
 
-Git supporta un modello di rilascio esplicito con *tag*:
+With Git, the corpus history is itself a research artefact.
 
 \`\`\`bash
-# Creare una versione
+# In the my-corpus repo you created in the exercises:
+
+# Who touched pivot/BOA1010.tsv and when?
+git log --oneline -- pivot/BOA1010.tsv
+
+# What exactly changed in the last commit to that file?
+git show HEAD -- pivot/BOA1010.tsv
+
+# How did the file look before your latest edit?
+git show HEAD~1:pivot/BOA1010.tsv
+
+# What is different between your branch and main?
+git diff main..annotator/BOA1010 -- pivot/BOA1010.tsv
+\`\`\`
+
+→ The commit history **is** the documentation of curatorial decisions. It replaces — and surpasses — manual changelogs.
+
+---
+
+## Versions and releases: corpora as software
+
+Git supports an explicit release model with *tags*:
+
+\`\`\`bash
+# Create a version
 git tag -a v1.1.0 -m "Add ParlaBO module; fix overlap encoding in KIP"
 git push origin v1.1.0
 \`\`\`
 
-Su GitHub, un tag crea automaticamente una **Release** con:
-- Changelog generato dai commit
-- Archivio scaricabile (\`.zip\`, \`.tar.gz\`) del corpus a quella versione
-- Collegamento a Zenodo per DOI permanente
+On GitHub, a tag automatically creates a **Release** with:
+- A changelog generated from commits
+- A downloadable archive (\`.zip\`, \`.tar.gz\`) of the corpus at that version
+- A link to Zenodo for a permanent DOI
 
-→ Ogni versione del corpus è **citabile**, **riproducibile** e **confrontabile** con le precedenti.
-
----
-
-## Part 3 — Riepilogo
-
-- I file audio **non appartengono** a Git direttamente: usare Git LFS, storage esterno, o \`.gitignore\`
-- I vincoli GDPR definiscono una netta separazione tra repo privato (dati grezzi) e repo pubblico (dati pseudonimizzati)
-- Il **formato pivot TSV verticale** è la chiave: un token per riga, diff leggibili, estensibile per colonne
-- L'architettura a tre livelli (TU → Span → Token) permette validazione automatica a ogni commit
-- I formati derivati (CoNLL-U, ELAN, NoSketchEngine) si rigenerano dal pivot — non si mantengono separatamente
-- La storia Git **è** la documentazione delle decisioni curatoriali
-- **Part 4** metterà in pratica tutto questo con un demo su un repo reale
+→ Every corpus version is **citable**, **reproducible**, and **comparable** with previous ones.
 
 ---
 
-*Riferimenti*
+*References*
 
 - Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *CLARIN*.
 - Pannitto et al. (2025). Introducing KIParla Forest. *DepLing / SyntaxFest*.
@@ -1277,26 +1389,131 @@ Su GitHub, un tag crea automaticamente una **Release** con:
 
 ## What we will build today
 
-Two repositories on GitHub:
+A shared repository for a real excerpt from **BOD2018**, a KIParla recording. Three contributors work simultaneously on different representations of the same data:
 
 \`\`\`
-git-spoken-corpus-demo/          git-spoken-corpus-slides/
-├── .github/workflows/           ├── index.html
-│   ├── validate.yml             ├── section1.md  …  section4.md
-│   └── stats.yml                └── md2slides.py
-├── annotations/
-│   ├── BOA1010.stub.tsv   ← stub (pre-tokenized, no UPOS)
-│   └── PSB054.stub.tsv    ← stub
+git-bod2018-demo/
+├── eaf/
+│   └── BOD2018.eaf            ← Annotator A: ELAN transcription
+├── pivot/
+│   └── BOD2018.tsv            ← Annotator B: pivot TSV (prosody, overlaps)
+├── conllu/
+│   └── BOD2018.conllu         ← Annotator C: UD syntactic annotation
 ├── scripts/
-│   ├── validate.py
-│   └── stats.py
-├── guidelines/
-│   └── ANNOTATION.md
-├── .gitignore
+│   ├── validate_tsv.py
+│   └── eaf_to_pivot.py
+├── .github/workflows/
+│   └── validate.yml
 └── README.md
 \`\`\`
 
-By the end of the session you will have gone through a complete annotator→manager cycle on a real spoken Italian excerpt.
+The goal: merge all three contributions back into a consistent pivot.
+
+---
+
+## The data: BOD2018, TU 138–140
+
+A short exchange between BO118 (interviewer) and BO140 (participant). TU 138 ends, TU 139 and 140 overlap.
+
+**What you hear** (Jefferson notation):
+
+\`\`\`
+BO140 (TU 138): ...zona irnerio così sono più sì anni cinquanta credo.
+BO118 (TU 139): [sì] (.) penso di sì.
+BO140 (TU 140): [non lo so].
+\`\`\`
+
+\`[…]\` marks overlap onset/offset. \`(.)\` is a short pause.
+
+**Three representations of the same three TUs** — each maintained by a different contributor, each seeing only part of the picture.
+
+---
+
+## The three files side by side
+
+**Pivot TSV** (Annotator B):
+
+\`\`\`
+token_id  speaker  tu_id  form    lemma    type        prosody           align          overlaps
+139-0     BO118    139    [sì]    sì       linguistic  _                 Begin=539.63   0-2(23)
+139-1     BO118    139    (.)     [PAUSE]  shortpause  _                 _              _
+139-2     BO118    139    penso   penso    linguistic  _                 _              _
+139-3     BO118    139    di      di       linguistic  _                 _              _
+139-4     BO118    139    sì.     sì       linguistic  Intonation=Fall   End=540.78     _
+140-0     BO140    140    [non    non      linguistic  _                 Begin=539.63   0-3(23)
+140-1     BO140    140    lo      lo       linguistic  _                 _              0-2(23)
+140-2     BO140    140    so].    so       linguistic  Intonation=Fall   End=540.26     0-2(23)
+\`\`\`
+
+**CoNLL-U** (Annotator C):
+
+\`\`\`
+# sent_id = BOD2018_140
+# text = sì penso di sì
+# jefferson_text = [sì] (.) penso di sì.
+# speaker_id = BO118
+1  sì     sì       ADV   _  _                       2  discourse  _  Begin=539.63|PauseAfter=Yes
+2  penso  pensare  VERB  _  Mood=Ind|Person=1|...   0  root       _  _
+3  di     di       ADP   _  _                       4  case       _  _
+4  sì     sì       ADV   _  _                       2  advmod     _  End=540.78|Intonation=Falling
+\`\`\`
+
+---
+
+## The divergence: the pause that disappeared
+
+The pause \`(.)\` in TU 139 is a **first-class token** in the pivot:
+
+\`\`\`
+139-1  BO118  139  (.)  [PAUSE]  shortpause  _  _  _
+\`\`\`
+
+In the CoNLL-U it is **not a token** — it is encoded as a feature on the preceding word:
+
+\`\`\`
+1  sì  sì  ADV  _  _  2  discourse  _  Begin=539.63|PauseAfter=Yes
+\`\`\`
+
+This is a principled decision: UD trees require every node to be a syntactically analysable unit, and pauses are not. But it means the two files are **not directly comparable line by line**.
+
+When Annotator B and Annotator C open a PR, the manager must:
+1. Verify that \`PauseAfter=Yes\` on token 1 correctly reflects \`139-1\` in the TSV
+2. Ensure no information was lost in the conversion
+3. Record the decision in the merge commit message
+
+Git makes this traceable. Without it, the divergence would be invisible.
+
+---
+
+## The pivot TSV format: columns 1–6
+
+Each token is one row. The 12 columns are:
+
+| # | Column | Description |
+|---|--------|-------------|
+| 1 | \`token_id\` | Unique token identifier within the conversation — format \`TU_ID-TOKEN_INDEX\` |
+| 2 | \`speaker\` | Speaker code (e.g. \`BO118\`) — matches \`metadata/participants.tsv\` |
+| 3 | \`tu_id\` | Progressive identifier of the Transcription Unit |
+| 4 | \`span\` | Original Jefferson transcription of the token, including all diacritics |
+| 5 | \`form\` | Orthographic form — special symbols stripped; \`(.)\` → \`[PAUSE]\`; unintelligible → \`x\` |
+| 6 | \`type\` | \`linguistic\` · \`shortpause\` · \`nonverbalbehavior\` · \`unknown\` · \`error\` |
+
+Tokenization splits on whitespace, prosodic links (\`=\`), and Italian elision apostrophes.
+
+---
+
+## The pivot TSV format: columns 7–12
+
+| # | Column | Description |
+|---|--------|-------------|
+| 7 | \`jefferson_feats\` | \`SpaceAfter=No\` · \`ProsodicLink=Yes\` · \`Intonation=Falling/Rising/WeaklyRising\` · \`Interrupted=Yes\` · \`Truncated=Yes\` · \`Volume=High/Low\` |
+| 8 | \`align\` | \`Begin=X.XXX\` and/or \`End=X.XXX\` in seconds — only on first/last token of TU |
+| 9 | \`prolongations\` | Colons encoded as \`<char_idx>x<count>\` — e.g. \`ese::mpio:\` → \`2x2,6x1\` |
+| 10 | \`pace\` | \`Fast=START-END\` or \`Slow=START-END\` (zero-based char indices over \`form\`) |
+| 11 | \`guesses\` | Uncertain spans from round brackets — \`START-END\` over \`form\` |
+| 12 | \`overlaps\` | Simultaneous speech — \`START-END(GROUP_ID)\` — char indices over \`form\` |
+
+*Pannitto & Mauri (2025) · KIParla tools: github.com/LaboratorioSperimentale/kiparla-tools*
 
 ---
 
@@ -1322,25 +1539,18 @@ git config --global user.email "you@example.com"
 
 ## Step 1 (manager): fork and inspect the repo
 
-1. Go to \`github.com/your-username/git-spoken-corpus-demo\`
+1. Go to the shared \`git-bod2018-demo\` repository
 2. Click **Fork** → creates your own copy
-3. Explore the repository structure:
-   - \`annotations/\` — stub TSV files with pre-tokenized spoken Italian
-   - \`scripts/validate.py\` — the validation script
-   - \`.github/workflows/validate.yml\` — the Action that fires on every push
-   - \`guidelines/ANNOTATION.md\` — annotation guidelines
+3. Explore the structure:
+   - \`pivot/BOD2018.tsv\` — the authoritative TSV (TU 138–140, partially annotated)
+   - \`conllu/BOD2018.conllu\` — the UD annotation (sent_id BOD2018_140 has gaps)
+   - \`eaf/BOD2018.eaf\` — the ELAN source (alignment timestamps to verify)
+   - \`scripts/validate_tsv.py\` — checks schema, delimiter balance, TU coherence
 
-**Read a stub file.**
-Open \`annotations/BOA1010.stub.tsv\`. You will see:
-
-\`\`\`
-token_id  speaker  form    type        lemma  upos
-1-1       PSB102   e       linguistic  _      _
-1-2       PSB102   quindi  linguistic  _      _
-1-3       PSB102   studi   linguistic  _      _
-\`\`\`
-
-\`lemma\` and \`upos\` columns are \`_\` — your job is to fill them in.
+**Assign roles** (one per group of three):
+- **Annotator A** → works on \`eaf/BOD2018.eaf\`: verify and correct alignment timestamps
+- **Annotator B** → works on \`pivot/BOD2018.tsv\`: add missing prosodic features
+- **Annotator C** → works on \`conllu/BOD2018.conllu\`: complete the UD annotation for TU 138
 
 ---
 
@@ -1362,43 +1572,50 @@ git checkout -b annotator/BOA1010
 
 ---
 
-## Step 3 (annotator): fill in the stub
+## Step 3 (annotator): make your edit
 
-Open \`annotations/BOA1010.stub.tsv\` in the editor and fill in \`lemma\` and \`upos\` for each token.
+Each annotator works on their assigned file:
 
-Use [Universal Dependencies UPOS tags](https://universaldependencies.org/u/pos/):
+**Annotator A** — \`eaf/BOD2018.eaf\`: check that \`Begin=539.63\` on TU 139 and \`Begin=539.63\` on TU 140 are both present and consistent with the overlap marker \`0-2(23)\` / \`0-3(23)\` in the TSV.
+
+**Annotator B** — \`pivot/BOD2018.tsv\`: the \`prosody\` column on tokens \`138-6\` (\`da::\`) and \`138-17\` (\`più::\`) is \`_\` but prolongations are visible. Add the correct values:
 
 \`\`\`
-token_id  speaker  form    type        lemma   upos
-1-1       PSB102   e       linguistic  e       CCONJ
-1-2       PSB102   quindi  linguistic  quindi  ADV
-1-3       PSB102   studi   linguistic  studiare VERB
-1-4       PSB102   pittura linguistic  pittura  NOUN
+138-6   BO140  138  da::    da    linguistic  _  _  1x2  _  _  _
 \`\`\`
 
-**Tip:** check the guidelines in \`guidelines/ANNOTATION.md\` before annotating — especially the section on spoken-language specific cases (discourse markers, false starts, filled pauses).
+→ change \`_\` in the prolongations column to \`1x2\`.
+
+**Annotator C** — \`conllu/BOD2018.conllu\`: \`sent_id = BOD2018_138_139\` is missing the deprel for token 19 (\`sì\`). It should be \`discourse\`, head \`20\`. Add it.
+
+**Important for all:** the pause token \`139-1 (.) [PAUSE] shortpause\` is in the TSV. Do not add it to the CoNLL-U — record it via \`PauseAfter=Yes\` on token 1 of \`BOD2018_140\` instead. This is the expected format divergence.
 
 ---
 
 ## Step 4 (annotator): commit with a meaningful message
 
-### From the browser
+Write a message that documents the decision, not just the change:
 
-1. Scroll to **Commit changes** at the bottom of the editor
-2. Write a descriptive commit message:
-
+**Annotator B example:**
 \`\`\`
-Add UPOS tags for BOA1010 (tokens 1-1 to 1-4)
+Add prolongation features to TU 138 tokens 138-6 and 138-17
 
-Token 1-3 (studi): annotated as VERB (studiare), not NOUN.
-The form is 2nd person singular present — context confirms
-verbal reading (see turn PSB054 preceding).
+138-6 (da::): 1 prolonged syllable, 2 extra.
+138-17 (più::): 2 prolonged syllables, 2 extra each.
+Values follow KIParla prolongation encoding (NxM = N syllables, M extra).
 \`\`\`
 
-3. Make sure **Commit directly to \`annotator/BOA1010\`** is selected
-4. Click **Commit changes**
+**Annotator C example:**
+\`\`\`
+Fix missing deprel for token 19 (sì) in BOD2018_138_139
 
-The GitHub Action fires immediately — check the **Actions** tab.
+Was: _ (empty). Should be: discourse, head=20 (anni).
+Consistent with treatment of discourse sì in BOD2018_2 and BOD2018_6_7_9_10.
+Note: pause (139-1) is not tokenised here — encoded as PauseAfter=Yes on
+BOD2018_140 token 1 per KIParla Forest convention.
+\`\`\`
+
+The GitHub Action fires immediately after commit — check the **Actions** tab.
 
 ---
 
@@ -1451,20 +1668,25 @@ Checklist:
 
 ---
 
-## Step 7 (manager): review the pull request
+## Step 7 (manager): review all three pull requests
 
-As manager, open the PR. You will see:
+Open each PR in turn. For each, check:
 
-- The **Files changed** tab — a diff of every modified line
-- The **Checks** section — validation result from the Action
-- The **Commits** tab — the full commit history with messages
+- **Files changed** — is the diff minimal and correct?
+- **Checks** — did \`validate_tsv.py\` pass?
+- **Commit message** — does it explain the decision?
 
-**Leave a review comment** on a specific line:
+**The key review moment: the pause divergence.**
 
-> Token 1-2 (\`quindi\`): ADV is correct here, but note that
-> in our corpus \`quindi\` often functions as a discourse
-> connector rather than a pure adverb. See guideline §3.4.
-> For now ADV is fine — worth flagging for future discussion.
+When reviewing Annotator C's PR, open \`conllu/BOD2018.conllu\` and check that \`PauseAfter=Yes\` appears on \`BOD2018_140\` token 1. Then open \`pivot/BOD2018.tsv\` and verify that \`139-1\` is still there as a \`shortpause\` token.
+
+Leave a comment on the CoNLL-U line:
+
+> \`PauseAfter=Yes\` on token 1 (\`sì\`, KID=139-0) correctly captures
+> the pause at TSV token 139-1. The TSV retains the explicit token
+> for query and interactional analysis; the CoNLL-U encodes it as
+> a feature for syntactic compatibility. Both are correct — the
+> formats serve different purposes.
 
 This comment is **permanently recorded** in the PR thread.
 
@@ -1512,42 +1734,46 @@ The \`main\` branch now has the approved annotation. Your branch can be deleted.
 
 ---
 
-## Tour: what the repo looks like after one full cycle
+## Tour: what the repo looks like after the three merges
 
 \`\`\`
 main branch
-├── annotations/
-│   └── BOA1010.stub.tsv   ← now fully annotated (merged)
-├── stats/
-│   └── progress.json      ← updated by stats Action
+├── eaf/BOD2018.eaf          ← A's alignment corrections
+├── pivot/BOD2018.tsv        ← B's prolongation features; pause 139-1 intact
+├── conllu/BOD2018.conllu    ← C's deprel fix; PauseAfter=Yes on BOD2018_140:1
 └── (commit history)
-    ├── a3f9c12  "Initial stub: BOA1010 (manager)"
-    ├── 7b2e441  "Add UPOS tags for BOA1010 (tokens 1-1 to 1-4)"
-    ├── 9d1f308  "Revise token 1-2: add discourse marker note"
-    └── 4c8a017  "Merge pull request #1: Annotate BOA1010"
+    ├── a3f9c12  "Initial BOD2018 stubs (TU 138–140)"
+    ├── 7b2e441  "Verify alignment for TU 139/140 overlap"       ← A
+    ├── 9d1f308  "Add prolongation features TU 138 tokens 6, 17" ← B
+    ├── 4c8a017  "Fix deprel token 19 in BOD2018_138_139"        ← C
+    ├── e2f1c08  "Merge PR #1: alignment (A)"
+    ├── f3a9d14  "Merge PR #2: prolongations (B)"
+    └── 1b7e305  "Merge PR #3: deprel fix (C)"
 \`\`\`
 
-Every decision is traceable. The PR thread holds the reasoning. The Actions log proves the annotation was validated before merge.
+Three people, three formats, three branches — one consistent, documented, validated corpus state on \`main\`.
+
+The pause is still in the TSV. The CoNLL-U knows about it via \`PauseAfter=Yes\`. Both are correct. The PR thread explains why.
 
 ---
 
-## Exercise: annotate PSB054
+## Exercise: extend the scenario to TU 141–145
 
-Now try it yourself with the second stub file.
+Now continue the annotation on a fresh excerpt.
 
-1. Create branch \`annotator/PSB054\`
-2. Open \`annotations/PSB054.stub.tsv\`
-3. Fill in \`lemma\` and \`upos\`
-4. Commit with a descriptive message
+1. Each group takes a role (A/B/C) for TU 141–145 of BOD2018
+2. Create a branch: \`annotator-a/tu141\`, \`annotator-b/tu141\`, \`annotator-c/tu141\`
+3. Make your edits to your assigned file
+4. Commit with a message that explains each decision
 5. Open a PR against \`main\`
-6. Exchange with a neighbour: review each other's PR
-7. Merge
+6. Exchange PRs with another group: review their work
+7. The manager merges in order: EAF → TSV → CoNLL-U
 
 **Discussion questions while you work:**
 
-- Where did the validation Action catch an error?
-- What would you add to the guidelines based on what you saw?
-- How would you structure the repo for a 2M-token corpus with 10 annotators?
+- Is there another pause or non-linguistic token in TU 141–145? How is it handled in each format?
+- What happens if Annotator B and Annotator C make incompatible decisions about the same token?
+- How would the merge process differ if there were 100 annotators working on 2M tokens?
 
 ---
 
@@ -1568,58 +1794,17 @@ No \`git clone\`, no terminal. Useful for linguists who are new to version contr
 
 ---
 
-## The two repos: how they connect
-
-\`\`\`
-git-spoken-corpus-slides/         git-spoken-corpus-demo/
-  ← presentation source              ← live annotation workflow
-  ← rendered via GitHub Pages        ← Actions, stubs, validation
-  ← md2slides.py builds HTML         ← community can fork + annotate
-
-Both repos link to each other in their README.
-The slides explain the demo. The demo instantiates the slides.
-\`\`\`
-
-**Publishing the slides:**
-
-\`\`\`bash
-# In git-spoken-corpus-slides/
-python3 md2slides.py          # regenerate index.html from all sections
-git add index.html
-git commit -m "Rebuild slides after section 4"
-git push
-# → GitHub Pages serves the updated presentation immediately
-\`\`\`
-
----
-
 ## Open questions and next steps
 
 Things we did not cover — threads worth following:
 
 - **Parallel annotation:** two annotators on the same file → branching model for disagreement → inter-annotator agreement computed from PR diffs
-- **Integration with annotation tools:** GitHub Apps API lets ELAN or Inception commit directly to a branch without touching the command line
+- **Integration with annotation tools:**
 - **Incremental releases:** \`git tag v1.0.0\` + Zenodo webhook → automatic DOI on every tag
-- **Scaling to speech:** combining Git (text layers) + Zenodo/CLARIN (audio) + GitHub Actions (conversion pipeline) into a single reproducible build
 
 > "By embracing version control practices and technologies, we can foster more rigorous, collaborative, and sustainable approaches to linguistic annotation."
 >
 > — Waldon & Schneider (2025)
-
----
-
-## Course summary
-
-| Part | Core idea |
-|---|---|
-| 1 · Motivation | Spoken corpora are living, multilayer artefacts — current workflows are fragile |
-| 2 · Git & GitHub | Five concepts: repo, commit, branch, PR, Action |
-| 3 · Spoken data | Pivot format + GDPR + audio strategy = diff-friendly corpus |
-| 4 · Hands-on | The full annotator → manager cycle on real spoken Italian data |
-
-**The two repos:**
-- \`git-spoken-corpus-slides\` — these slides, GitHub Pages
-- \`git-spoken-corpus-demo\` — the toy corpus, try it anytime
 
 ---
 

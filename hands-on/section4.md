@@ -4,26 +4,131 @@
 
 ## What we will build today
 
-Two repositories on GitHub:
+A shared repository for a real excerpt from **BOD2018**, a KIParla recording. Three contributors work simultaneously on different representations of the same data:
 
 ```
-git-spoken-corpus-demo/          git-spoken-corpus-slides/
-├── .github/workflows/           ├── index.html
-│   ├── validate.yml             ├── section1.md  …  section4.md
-│   └── stats.yml                └── md2slides.py
-├── annotations/
-│   ├── BOA1010.stub.tsv   ← stub (pre-tokenized, no UPOS)
-│   └── PSB054.stub.tsv    ← stub
+git-bod2018-demo/
+├── eaf/
+│   └── BOD2018.eaf            ← Annotator A: ELAN transcription
+├── pivot/
+│   └── BOD2018.tsv            ← Annotator B: pivot TSV (prosody, overlaps)
+├── conllu/
+│   └── BOD2018.conllu         ← Annotator C: UD syntactic annotation
 ├── scripts/
-│   ├── validate.py
-│   └── stats.py
-├── guidelines/
-│   └── ANNOTATION.md
-├── .gitignore
+│   ├── validate_tsv.py
+│   └── eaf_to_pivot.py
+├── .github/workflows/
+│   └── validate.yml
 └── README.md
 ```
 
-By the end of the session you will have gone through a complete annotator→manager cycle on a real spoken Italian excerpt.
+The goal: merge all three contributions back into a consistent pivot.
+
+---
+
+## The data: BOD2018, TU 138–140
+
+A short exchange between BO118 (interviewer) and BO140 (participant). TU 138 ends, TU 139 and 140 overlap.
+
+**What you hear** (Jefferson notation):
+
+```
+BO140 (TU 138): ...zona irnerio così sono più sì anni cinquanta credo.
+BO118 (TU 139): [sì] (.) penso di sì.
+BO140 (TU 140): [non lo so].
+```
+
+`[…]` marks overlap onset/offset. `(.)` is a short pause.
+
+**Three representations of the same three TUs** — each maintained by a different contributor, each seeing only part of the picture.
+
+---
+
+## The three files side by side
+
+**Pivot TSV** (Annotator B):
+
+```
+token_id  speaker  tu_id  form    lemma    type        prosody           align          overlaps
+139-0     BO118    139    [sì]    sì       linguistic  _                 Begin=539.63   0-2(23)
+139-1     BO118    139    (.)     [PAUSE]  shortpause  _                 _              _
+139-2     BO118    139    penso   penso    linguistic  _                 _              _
+139-3     BO118    139    di      di       linguistic  _                 _              _
+139-4     BO118    139    sì.     sì       linguistic  Intonation=Fall   End=540.78     _
+140-0     BO140    140    [non    non      linguistic  _                 Begin=539.63   0-3(23)
+140-1     BO140    140    lo      lo       linguistic  _                 _              0-2(23)
+140-2     BO140    140    so].    so       linguistic  Intonation=Fall   End=540.26     0-2(23)
+```
+
+**CoNLL-U** (Annotator C):
+
+```
+# sent_id = BOD2018_140
+# text = sì penso di sì
+# jefferson_text = [sì] (.) penso di sì.
+# speaker_id = BO118
+1  sì     sì       ADV   _  _                       2  discourse  _  Begin=539.63|PauseAfter=Yes
+2  penso  pensare  VERB  _  Mood=Ind|Person=1|...   0  root       _  _
+3  di     di       ADP   _  _                       4  case       _  _
+4  sì     sì       ADV   _  _                       2  advmod     _  End=540.78|Intonation=Falling
+```
+
+---
+
+## The divergence: the pause that disappeared
+
+The pause `(.)` in TU 139 is a **first-class token** in the pivot:
+
+```
+139-1  BO118  139  (.)  [PAUSE]  shortpause  _  _  _
+```
+
+In the CoNLL-U it is **not a token** — it is encoded as a feature on the preceding word:
+
+```
+1  sì  sì  ADV  _  _  2  discourse  _  Begin=539.63|PauseAfter=Yes
+```
+
+This is a principled decision: UD trees require every node to be a syntactically analysable unit, and pauses are not. But it means the two files are **not directly comparable line by line**.
+
+When Annotator B and Annotator C open a PR, the manager must:
+1. Verify that `PauseAfter=Yes` on token 1 correctly reflects `139-1` in the TSV
+2. Ensure no information was lost in the conversion
+3. Record the decision in the merge commit message
+
+Git makes this traceable. Without it, the divergence would be invisible.
+
+---
+
+## The pivot TSV format: columns 1–6
+
+Each token is one row. The 12 columns are:
+
+| # | Column | Description |
+|---|--------|-------------|
+| 1 | `token_id` | Unique token identifier within the conversation — format `TU_ID-TOKEN_INDEX` |
+| 2 | `speaker` | Speaker code (e.g. `BO118`) — matches `metadata/participants.tsv` |
+| 3 | `tu_id` | Progressive identifier of the Transcription Unit |
+| 4 | `span` | Original Jefferson transcription of the token, including all diacritics |
+| 5 | `form` | Orthographic form — special symbols stripped; `(.)` → `[PAUSE]`; unintelligible → `x` |
+| 6 | `type` | `linguistic` · `shortpause` · `nonverbalbehavior` · `unknown` · `error` |
+
+Tokenization splits on whitespace, prosodic links (`=`), and Italian elision apostrophes.
+
+---
+
+## The pivot TSV format: columns 7–12
+
+| # | Column | Description |
+|---|--------|-------------|
+| 7 | `jefferson_feats` | `SpaceAfter=No` · `ProsodicLink=Yes` · `Intonation=Falling/Rising/WeaklyRising` · `Interrupted=Yes` · `Truncated=Yes` · `Volume=High/Low` |
+| 8 | `align` | `Begin=X.XXX` and/or `End=X.XXX` in seconds — only on first/last token of TU |
+| 9 | `prolongations` | Colons encoded as `<char_idx>x<count>` — e.g. `ese::mpio:` → `2x2,6x1` |
+| 10 | `pace` | `Fast=START-END` or `Slow=START-END` (zero-based char indices over `form`) |
+| 11 | `guesses` | Uncertain spans from round brackets — `START-END` over `form` |
+| 12 | `overlaps` | Simultaneous speech — `START-END(GROUP_ID)` — char indices over `form` |
+
+*Pannitto & Mauri (2025) · KIParla tools: github.com/LaboratorioSperimentale/kiparla-tools*
 
 ---
 
@@ -49,25 +154,18 @@ git config --global user.email "you@example.com"
 
 ## Step 1 (manager): fork and inspect the repo
 
-1. Go to `github.com/your-username/git-spoken-corpus-demo`
+1. Go to the shared `git-bod2018-demo` repository
 2. Click **Fork** → creates your own copy
-3. Explore the repository structure:
-   - `annotations/` — stub TSV files with pre-tokenized spoken Italian
-   - `scripts/validate.py` — the validation script
-   - `.github/workflows/validate.yml` — the Action that fires on every push
-   - `guidelines/ANNOTATION.md` — annotation guidelines
+3. Explore the structure:
+   - `pivot/BOD2018.tsv` — the authoritative TSV (TU 138–140, partially annotated)
+   - `conllu/BOD2018.conllu` — the UD annotation (sent_id BOD2018_140 has gaps)
+   - `eaf/BOD2018.eaf` — the ELAN source (alignment timestamps to verify)
+   - `scripts/validate_tsv.py` — checks schema, delimiter balance, TU coherence
 
-**Read a stub file.**
-Open `annotations/BOA1010.stub.tsv`. You will see:
-
-```
-token_id  speaker  form    type        lemma  upos
-1-1       PSB102   e       linguistic  _      _
-1-2       PSB102   quindi  linguistic  _      _
-1-3       PSB102   studi   linguistic  _      _
-```
-
-`lemma` and `upos` columns are `_` — your job is to fill them in.
+**Assign roles** (one per group of three):
+- **Annotator A** → works on `eaf/BOD2018.eaf`: verify and correct alignment timestamps
+- **Annotator B** → works on `pivot/BOD2018.tsv`: add missing prosodic features
+- **Annotator C** → works on `conllu/BOD2018.conllu`: complete the UD annotation for TU 138
 
 ---
 
@@ -89,43 +187,50 @@ git checkout -b annotator/BOA1010
 
 ---
 
-## Step 3 (annotator): fill in the stub
+## Step 3 (annotator): make your edit
 
-Open `annotations/BOA1010.stub.tsv` in the editor and fill in `lemma` and `upos` for each token.
+Each annotator works on their assigned file:
 
-Use [Universal Dependencies UPOS tags](https://universaldependencies.org/u/pos/):
+**Annotator A** — `eaf/BOD2018.eaf`: check that `Begin=539.63` on TU 139 and `Begin=539.63` on TU 140 are both present and consistent with the overlap marker `0-2(23)` / `0-3(23)` in the TSV.
+
+**Annotator B** — `pivot/BOD2018.tsv`: the `prosody` column on tokens `138-6` (`da::`) and `138-17` (`più::`) is `_` but prolongations are visible. Add the correct values:
 
 ```
-token_id  speaker  form    type        lemma   upos
-1-1       PSB102   e       linguistic  e       CCONJ
-1-2       PSB102   quindi  linguistic  quindi  ADV
-1-3       PSB102   studi   linguistic  studiare VERB
-1-4       PSB102   pittura linguistic  pittura  NOUN
+138-6   BO140  138  da::    da    linguistic  _  _  1x2  _  _  _
 ```
 
-**Tip:** check the guidelines in `guidelines/ANNOTATION.md` before annotating — especially the section on spoken-language specific cases (discourse markers, false starts, filled pauses).
+→ change `_` in the prolongations column to `1x2`.
+
+**Annotator C** — `conllu/BOD2018.conllu`: `sent_id = BOD2018_138_139` is missing the deprel for token 19 (`sì`). It should be `discourse`, head `20`. Add it.
+
+**Important for all:** the pause token `139-1 (.) [PAUSE] shortpause` is in the TSV. Do not add it to the CoNLL-U — record it via `PauseAfter=Yes` on token 1 of `BOD2018_140` instead. This is the expected format divergence.
 
 ---
 
 ## Step 4 (annotator): commit with a meaningful message
 
-### From the browser
+Write a message that documents the decision, not just the change:
 
-1. Scroll to **Commit changes** at the bottom of the editor
-2. Write a descriptive commit message:
-
+**Annotator B example:**
 ```
-Add UPOS tags for BOA1010 (tokens 1-1 to 1-4)
+Add prolongation features to TU 138 tokens 138-6 and 138-17
 
-Token 1-3 (studi): annotated as VERB (studiare), not NOUN.
-The form is 2nd person singular present — context confirms
-verbal reading (see turn PSB054 preceding).
+138-6 (da::): 1 prolonged syllable, 2 extra.
+138-17 (più::): 2 prolonged syllables, 2 extra each.
+Values follow KIParla prolongation encoding (NxM = N syllables, M extra).
 ```
 
-3. Make sure **Commit directly to `annotator/BOA1010`** is selected
-4. Click **Commit changes**
+**Annotator C example:**
+```
+Fix missing deprel for token 19 (sì) in BOD2018_138_139
 
-The GitHub Action fires immediately — check the **Actions** tab.
+Was: _ (empty). Should be: discourse, head=20 (anni).
+Consistent with treatment of discourse sì in BOD2018_2 and BOD2018_6_7_9_10.
+Note: pause (139-1) is not tokenised here — encoded as PauseAfter=Yes on
+BOD2018_140 token 1 per KIParla Forest convention.
+```
+
+The GitHub Action fires immediately after commit — check the **Actions** tab.
 
 ---
 
@@ -178,20 +283,25 @@ Checklist:
 
 ---
 
-## Step 7 (manager): review the pull request
+## Step 7 (manager): review all three pull requests
 
-As manager, open the PR. You will see:
+Open each PR in turn. For each, check:
 
-- The **Files changed** tab — a diff of every modified line
-- The **Checks** section — validation result from the Action
-- The **Commits** tab — the full commit history with messages
+- **Files changed** — is the diff minimal and correct?
+- **Checks** — did `validate_tsv.py` pass?
+- **Commit message** — does it explain the decision?
 
-**Leave a review comment** on a specific line:
+**The key review moment: the pause divergence.**
 
-> Token 1-2 (`quindi`): ADV is correct here, but note that
-> in our corpus `quindi` often functions as a discourse
-> connector rather than a pure adverb. See guideline §3.4.
-> For now ADV is fine — worth flagging for future discussion.
+When reviewing Annotator C's PR, open `conllu/BOD2018.conllu` and check that `PauseAfter=Yes` appears on `BOD2018_140` token 1. Then open `pivot/BOD2018.tsv` and verify that `139-1` is still there as a `shortpause` token.
+
+Leave a comment on the CoNLL-U line:
+
+> `PauseAfter=Yes` on token 1 (`sì`, KID=139-0) correctly captures
+> the pause at TSV token 139-1. The TSV retains the explicit token
+> for query and interactional analysis; the CoNLL-U encodes it as
+> a feature for syntactic compatibility. Both are correct — the
+> formats serve different purposes.
 
 This comment is **permanently recorded** in the PR thread.
 
@@ -239,42 +349,46 @@ The `main` branch now has the approved annotation. Your branch can be deleted.
 
 ---
 
-## Tour: what the repo looks like after one full cycle
+## Tour: what the repo looks like after the three merges
 
 ```
 main branch
-├── annotations/
-│   └── BOA1010.stub.tsv   ← now fully annotated (merged)
-├── stats/
-│   └── progress.json      ← updated by stats Action
+├── eaf/BOD2018.eaf          ← A's alignment corrections
+├── pivot/BOD2018.tsv        ← B's prolongation features; pause 139-1 intact
+├── conllu/BOD2018.conllu    ← C's deprel fix; PauseAfter=Yes on BOD2018_140:1
 └── (commit history)
-    ├── a3f9c12  "Initial stub: BOA1010 (manager)"
-    ├── 7b2e441  "Add UPOS tags for BOA1010 (tokens 1-1 to 1-4)"
-    ├── 9d1f308  "Revise token 1-2: add discourse marker note"
-    └── 4c8a017  "Merge pull request #1: Annotate BOA1010"
+    ├── a3f9c12  "Initial BOD2018 stubs (TU 138–140)"
+    ├── 7b2e441  "Verify alignment for TU 139/140 overlap"       ← A
+    ├── 9d1f308  "Add prolongation features TU 138 tokens 6, 17" ← B
+    ├── 4c8a017  "Fix deprel token 19 in BOD2018_138_139"        ← C
+    ├── e2f1c08  "Merge PR #1: alignment (A)"
+    ├── f3a9d14  "Merge PR #2: prolongations (B)"
+    └── 1b7e305  "Merge PR #3: deprel fix (C)"
 ```
 
-Every decision is traceable. The PR thread holds the reasoning. The Actions log proves the annotation was validated before merge.
+Three people, three formats, three branches — one consistent, documented, validated corpus state on `main`.
+
+The pause is still in the TSV. The CoNLL-U knows about it via `PauseAfter=Yes`. Both are correct. The PR thread explains why.
 
 ---
 
-## Exercise: annotate PSB054
+## Exercise: extend the scenario to TU 141–145
 
-Now try it yourself with the second stub file.
+Now continue the annotation on a fresh excerpt.
 
-1. Create branch `annotator/PSB054`
-2. Open `annotations/PSB054.stub.tsv`
-3. Fill in `lemma` and `upos`
-4. Commit with a descriptive message
+1. Each group takes a role (A/B/C) for TU 141–145 of BOD2018
+2. Create a branch: `annotator-a/tu141`, `annotator-b/tu141`, `annotator-c/tu141`
+3. Make your edits to your assigned file
+4. Commit with a message that explains each decision
 5. Open a PR against `main`
-6. Exchange with a neighbour: review each other's PR
-7. Merge
+6. Exchange PRs with another group: review their work
+7. The manager merges in order: EAF → TSV → CoNLL-U
 
 **Discussion questions while you work:**
 
-- Where did the validation Action catch an error?
-- What would you add to the guidelines based on what you saw?
-- How would you structure the repo for a 2M-token corpus with 10 annotators?
+- Is there another pause or non-linguistic token in TU 141–145? How is it handled in each format?
+- What happens if Annotator B and Annotator C make incompatible decisions about the same token?
+- How would the merge process differ if there were 100 annotators working on 2M tokens?
 
 ---
 
@@ -295,58 +409,17 @@ No `git clone`, no terminal. Useful for linguists who are new to version control
 
 ---
 
-## The two repos: how they connect
-
-```
-git-spoken-corpus-slides/         git-spoken-corpus-demo/
-  ← presentation source              ← live annotation workflow
-  ← rendered via GitHub Pages        ← Actions, stubs, validation
-  ← md2slides.py builds HTML         ← community can fork + annotate
-
-Both repos link to each other in their README.
-The slides explain the demo. The demo instantiates the slides.
-```
-
-**Publishing the slides:**
-
-```bash
-# In git-spoken-corpus-slides/
-python3 md2slides.py          # regenerate index.html from all sections
-git add index.html
-git commit -m "Rebuild slides after section 4"
-git push
-# → GitHub Pages serves the updated presentation immediately
-```
-
----
-
 ## Open questions and next steps
 
 Things we did not cover — threads worth following:
 
 - **Parallel annotation:** two annotators on the same file → branching model for disagreement → inter-annotator agreement computed from PR diffs
-- **Integration with annotation tools:** GitHub Apps API lets ELAN or Inception commit directly to a branch without touching the command line
+- **Integration with annotation tools:**
 - **Incremental releases:** `git tag v1.0.0` + Zenodo webhook → automatic DOI on every tag
-- **Scaling to speech:** combining Git (text layers) + Zenodo/CLARIN (audio) + GitHub Actions (conversion pipeline) into a single reproducible build
 
 > "By embracing version control practices and technologies, we can foster more rigorous, collaborative, and sustainable approaches to linguistic annotation."
 >
 > — Waldon & Schneider (2025)
-
----
-
-## Course summary
-
-| Part | Core idea |
-|---|---|
-| 1 · Motivation | Spoken corpora are living, multilayer artefacts — current workflows are fragile |
-| 2 · Git & GitHub | Five concepts: repo, commit, branch, PR, Action |
-| 3 · Spoken data | Pivot format + GDPR + audio strategy = diff-friendly corpus |
-| 4 · Hands-on | The full annotator → manager cycle on real spoken Italian data |
-
-**The two repos:**
-- `git-spoken-corpus-slides` — these slides, GitHub Pages
-- `git-spoken-corpus-demo` — the toy corpus, try it anytime
 
 ---
 
