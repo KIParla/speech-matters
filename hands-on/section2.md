@@ -1,26 +1,64 @@
 # Git & GitHub: core concepts
 
-**Summer School Lab · Part 2 of 4**
-Dr. Ludovica Pannitto — Università di Bologna
-
 ---
 
 ## From the problem to the tool
 
-In Part 1 we established that spoken corpus pipelines suffer from:
+So: often spoken corpus pipelines suffer from
 
-- Opacity — decisions are not recorded
-- Irreversibility — changes cannot be undone safely
-- Bottlenecks — knowledge concentrated in one person
-- Static releases — errors persist across versions
+- Opacity — decisions are not recorded > because it takes a lot of time to track things!
+- Irreversibility — changes cannot be undone safely > how should we propagate changes to all artifacts? Better not to change anything...
+- Bottlenecks — knowledge concentrated in one person > the PI often is the only one aware of the entire ecosystem
+- Static releases — no clear relation between releases
 
-**Part 2** introduces the toolbox that addresses all four problems at once.
+---
+
+## We have all seen this
+
+```
+BOA1010_final.eaf
+BOA1010_final_revised.eaf
+BOA1010_final_revised_2.eaf
+BOA1010_FINAL_USE_THIS_ONE.eaf
+BOA1010_FINAL_USE_THIS_ONE_v2_corrected.eaf
+BOA1010_FINAL_USE_THIS_ONE_v2_corrected_LP.eaf
+```
+
+- Which is the authoritative version?
+- Who made the `_corrected` changes, and why?
+- Can you go back to before the last revision round?
+- What happens when two annotators work on different copies?
+
+This is the default state of most annotation projects without version control.
+
+*Software Carpentry (2024)*
 
 ---
 
 ## What is a version control system?
 
 A **Version Control System (VCS)** records changes to a file repository over time.
+
+Instead of keeping N copies of a file, it stores a **base version** and a **sequence of changes**:
+
+```
+BOA1010 [base — initial transcription]
+    │  commit a3f9c12  "initial ELAN transcription"
+    ↓
+BOA1010 + Δ1
+    │  commit b7e2a41  "add UPOS tags tokens 1–20"
+    ↓
+BOA1010 + Δ1 + Δ2
+    │  commit c1d8f33  "fix overlap annotation token 14"
+    ↓
+BOA1010 + Δ1 + Δ2 + Δ3          ← current state
+```
+
+Any past version is reconstructible. Any change can be undone. The **commit message is the rationale**, stored permanently alongside the change.
+
+> "Version control is like an unlimited undo — and it also allows many people to work in parallel."
+>
+> — *Software Carpentry, Version Control with Git (2024)*
 
 It allows a team to:
 
@@ -34,6 +72,25 @@ It allows a team to:
 
 ---
 
+## Why not just use Track Changes?
+
+The closest familiar tool is *Track Changes* in word processors. It fails for annotation work because:
+
+| Limitation | Consequence for annotation |
+|---|---|
+| History is **lost on acceptance** | Authorship and rationale vanish once changes are merged |
+| No **parallel branches** | Collaborators must work sequentially or merge manually |
+| **Not plain-text friendly** | Does not work with CoNLL-U, TSV, XML — the formats we actually use |
+| No **programmatic access** | You cannot run a validation script or trigger a conversion |
+| No **conflict detection** | Two people editing the same span silently overwrite each other |
+
+> Track Changes is designed for a document that reaches a final state.
+> A corpus is never final — it is a living artefact.
+
+*Software Carpentry (2024)*
+
+---
+
 ## Git: the most widely used VCS
 
 **Git** is a distributed version control system. Every contributor has a full copy of the repository history.
@@ -42,30 +99,12 @@ Key properties:
 - **Free and open source**
 - Works entirely on the command line — but has many GUI frontends
 - Designed for plain text files → ideal for CoNLL-U, TSV, XML, Markdown
-- Does not require a server — repositories live on your machine
-- Integrates with hosting platforms: GitHub, GitLab, Codeberg
+- Does not (necessarily) require a server — repositories live on your machine
+- Integrates with hosting platforms: GitHub, GitLab, own server
 
 *Created by Linus Torvalds in 2005 for Linux kernel development*
 
----
-
-## GitHub: Git with collaboration superpowers
-
 **GitHub** is a web-based hosting service for Git repositories.
-
-Git provides version control. GitHub adds:
-
-| Git (local) | GitHub (web platform) |
-|---|---|
-| Commit history | Visual diff viewer |
-| Branches | Pull requests |
-| Merge | Code review interface |
-| Tags | Releases |
-| Hooks | GitHub Actions (CI/CD) |
-| — | Issues (discussion threads) |
-| — | Community forks |
-
-*All of this is free for public repositories — including academic projects.*
 
 ---
 
@@ -108,6 +147,68 @@ The repo stores:
 
 ---
 
+## Local and remote repositories
+
+In a distributed VCS, every collaborator has a **full copy** of the repository. Git distinguishes two kinds:
+
+- **Remote repo** — hosted on a server (GitHub, GitLab, institutional server); the shared reference point for the team
+- **Local repo** — on your personal machine; where you actually do your work
+
+The three operations that connect them:
+
+```
+git clone <url>   # copy the remote repo to your machine — done once
+git pull          # fetch the latest commits from remote into your local repo
+git push          # send your local commits up to the remote
+```
+
+```
+remote repo (GitHub)
+      │  clone ↓        ↑ push / ↓ pull
+      ├── Maria's local repo    (annotates BOA1010)
+      └── Giulio's local repo   (annotates PSB054)
+```
+
+Each annotator works locally and commits at their own pace. Changes reach the shared remote only via an explicit `push`.
+
+*Zeman, Savary & Guillaume (2024)*
+
+---
+
+## The four states of a file
+
+Every file in a Git repository is in one of four states:
+
+```
+[untracked]                         not known to Git
+     │  git add
+     ▼
+[staged]         change selected, ready to be included in the next commit
+     │  git commit
+     ▼
+[committed / unmodified]            safely stored in the Git database
+     │  edit file
+     ▼
+[modified]       file changed on disk, but change not yet staged
+     │  git add
+     ▼
+[staged] → ...
+```
+
+Three areas a file moves through:
+
+| Area | Location | Role |
+|---|---|---|
+| Working directory | `project/` | where you edit |
+| Staging area | `project/.git/index` | what goes into the next commit |
+| Git database | `project/.git/objects` | permanent history |
+
+The staging step lets you commit **some** changes from your working directory while leaving others for a later commit — useful when one session touches multiple annotation files but only one is ready for review.
+
+*Zeman, Savary & Guillaume (2024)*
+
+---
+
 ## Concept 2: Commit
 
 A **commit** records the state of one or more files at a specific point in time.
@@ -118,7 +219,7 @@ git commit -m "Add UPOS tags for BOA1010, tokens 1-45"
 ```
 
 Each commit has:
-- A **unique hash** (e.g. `a3f9c12`) — an immutable identifier
+- A **unique hash** (e.g. `a3f9c12`) — a 40-character hexadecimal checksum calculated from the contents of all tracked files; Git shortens it to the first 6–7 characters for display
 - A **message** — the annotation rationale, in plain language
 - A **diff** — exactly which lines changed
 - **Author** and **timestamp**
@@ -164,6 +265,36 @@ Rules:
 - When work is ready, it is *proposed* for merging via a pull request
 
 → Parallel annotation without conflicts
+
+---
+
+## When two people edit the same file: conflicts
+
+A **conflict** occurs when two collaborators modify the **same lines** of the same file independently, and one tries to push after the other has already done so.
+
+```
+Maria pushes commit 1  →  remote updated
+Giulio tries to push commit 2  →  REJECTED: remote has commits Giulio doesn't have
+    Giulio must first: git pull
+    Git attempts automatic merge
+    If the same lines were changed by both: CONFLICT — must be resolved manually
+```
+
+What a conflict looks like inside the file:
+
+```diff
+<<<<<<< HEAD  (Giulio's version)
+1  e  e  CCONJ  _  _  3  cc    _  _
+=======
+1  e  e  PART   _  _  3  mark  _  _
+>>>>>>> origin/main  (Maria's version)
+```
+
+Giulio must choose one version (or write a combined one), remove the conflict markers, and commit.
+
+**How the branch workflow prevents this**: annotators work on **separate branches**, usually on **separate files**. Conflicts only arise if two people touch the same token in the same file — which the branch + pull-request model makes rare and detectable before merge.
+
+*Zeman, Savary & Guillaume (2024)*
 
 ---
 
@@ -314,6 +445,8 @@ Annotators unfamiliar with Git face a real barrier. Mitigation strategies:
 *References*
 
 - de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
+- Software Carpentry (2024). *Version Control with Git*. The Carpentries. https://swcarpentry.github.io/git-novice/
+- Zeman, D., Savary, A. & Guillaume, B. (2024). Git Infrastructure. *UniDive Training School*, Chișinău.
 - Palmer, M. & Xue, N. (2010). Linguistic annotation. Chapter 10.
 - San, N. (2016). Using version control for a reproducible workflow in acoustic phonetics. *SST2016*.
 - Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.

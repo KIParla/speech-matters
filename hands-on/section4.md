@@ -1,8 +1,5 @@
 # Hands-on: building the workflow
 
-**Summer School Lab · Part 4 of 4**
-Dr. Ludovica Pannitto — Università di Bologna
-
 ---
 
 ## What we will build today
@@ -156,7 +153,7 @@ If the Action **fails**, read the error output — it tells you exactly which ro
 
 ## Step 6 (annotator): open a pull request
 
-1. Go to the repo page → click **Compare & pull request**  
+1. Go to the repo page → click **Compare & pull request**
    (GitHub shows this banner automatically after a push)
 2. Set:
    - **base:** `main`
@@ -191,9 +188,9 @@ As manager, open the PR. You will see:
 
 **Leave a review comment** on a specific line:
 
-> Token 1-2 (`quindi`): ADV is correct here, but note that  
-> in our corpus `quindi` often functions as a discourse  
-> connector rather than a pure adverb. See guideline §3.4.  
+> Token 1-2 (`quindi`): ADV is correct here, but note that
+> in our corpus `quindi` often functions as a discourse
+> connector rather than a pure adverb. See guideline §3.4.
 > For now ADV is fine — worth flagging for future discussion.
 
 This comment is **permanently recorded** in the PR thread.
@@ -355,12 +352,12 @@ Things we did not cover — threads worth following:
 
 ## Thank you
 
-Dr. Ludovica Pannitto  
-Alma Mater Studiorum — Università di Bologna  
+Dr. Ludovica Pannitto
+Alma Mater Studiorum — Università di Bologna
 `ludovica.pannitto@unibo.it`
 
-*KIParla corpus:* `www.kiparla.it`  
-*KIParla Forest:* Pannitto et al. (2025), DepLing/SyntaxFest  
+*KIParla corpus:* `www.kiparla.it`
+*KIParla Forest:* Pannitto et al. (2025), DepLing/SyntaxFest
 *GitHub workflow:* Waldon & Schneider (2025), LAW XIX
 
 ---

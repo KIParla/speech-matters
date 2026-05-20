@@ -83,6 +83,26 @@ linearized exports
 - The pipeline is a *one-way street* — upstream corrections do not propagate to downstream layers or exports
 - Validation is *not enforced* — annotation errors only surface when someone notices them, and it's hard to propagate corrections
 - At this scale, and with a growing corpus, consistency *cannot be maintained manually* — automatic pipelines are needed
+- Each undocumented shortcut, implicit modeling choice, and ad hoc format migration accumulates as **technical and conceptual debt** — making future transformations, collaboration, and reuse increasingly fragile
+
+---
+
+## From pipeline to pivot
+
+The linear model treats ELAN as the authoritative source. Every derived format is a dead end — a correction to the source does not reach the outputs, and there is no path back.
+
+**The pivot model** replaces this with a single maintained representation at the centre:
+
+![Pivot architecture: TSV format at centre, derived formats around it with bidirectional conversion](assets/pivot-architecture.svg)
+
+The pivot is a **verticalized, pseudo-tokenized TSV** — one token per row, enriched with lexical, prosodic, interactional, and alignment features. From it, all formats are reproducibly derived by conversion scripts. Crucially, the architecture is **bidirectional**: corrections applied at the pivot level propagate to all derived formats.
+
+- **Version-controlled** — every change is a commit; full history is preserved
+- **Validated at ingestion** — well-formedness constraints enforced before any format is generated
+- **Diff-able and human-readable** — inspectable with a text editor or spreadsheet, no specialist tool required
+- **Extensible** — new annotation layers are added as columns, without restructuring existing data
+
+*Pannitto & Mauri (2025)*
 
 ---
 
@@ -123,6 +143,13 @@ In the .eaf XML, they live **3000+ lines apart**:
 - Additional annotation layers are **external or tool-dependent**
 - No path to add morphosyntax, prosody, or speech acts without breaking the format
 
+**The deeper problem**: these formats, tools, and pipelines were not designed with spoken interaction in mind. They do not model:
+- the **speaker** as a social agent producing situated language
+- the **interactional setting** — who is talking to whom, under what circumstances
+- **spoken-language specifics** — overlap, repair, prosody, turn-taking, disfluency
+
+They were built for text, then retrofitted for speech.
+
 ---
 
 ## What goes wrong without version control
@@ -131,9 +158,29 @@ In the .eaf XML, they live **3000+ lines apart**:
 | ------------------------ | ---------------------------------------- |
 | Opaque pipeline          | Cannot retrace annotation decisions      |
 | Non-reversible edits     | Ad-hoc choices crystallize permanently   |
-| Single expert bottleneck | Knowledge locked in one person           |
+| Single expert bottleneck | Knowledge locked in one person; infrastructure becomes unintelligible to the rest of the team |
 | No adjudication trail    | Inter-annotator disagreement invisible   |
 | Static releases          | Errors cannot be corrected incrementally |
+| Undocumented format migration | Each conversion introduces silent distortions of meaning |
+| Technical and conceptual debt | Earlier shortcuts constrain every future transformation |
+
+---
+
+## The invisible cost of infrastructure
+
+> "Digital Humanities projects often struggle not because of analytical complexity, but because of **fragile data workflows**, undocumented transformations, and ad hoc collaboration practices."
+>
+> — Pannitto (submitted)
+
+Infrastructure work is invisible — until it breaks. When it does, the cost is:
+
+- **Information loss**: transformations that cannot be reconstructed
+- **Misalignment between layers**: each format drifts independently
+- **Unintelligible archives**: corpora that become opaque artifacts rather than reusable research objects
+
+The standard response is to delegate all of this to a single technical expert. This creates its own risk: when that person leaves, the infrastructure becomes unmaintainable.
+
+The alternative is **distributed computational literacy** — shared understanding of version control, transformation logic, and documentation practices across the whole team. Not turning linguists into software engineers, but ensuring no one is left unable to navigate the systems that sustain their own research.
 
 ---
 
@@ -174,6 +221,8 @@ New data are added · Errors are corrected · Formats evolve · New reuse scenar
 
 → This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself
 
+Without explicit documentation of data models, processing steps, and dependencies, archived corpora risk becoming **opaque artifacts** rather than reusable research objects — intelligible only to whoever built them, and only for as long as that person is available.
+
 ---
 
 ## The DevOps analogy
@@ -201,27 +250,18 @@ A workflow that is:
 - **Participatory** — open to community contributions and corrections
 - **Reversible** — any change can be traced and undone
 
-→ This is exactly what **Git** and **GitHub** were built for
-
----
-
-## Part 1 — Summary
-
-- Spoken corpora are multilayer, multi-person, multi-tool artefacts
-- Current pipelines are opaque, hard to scale, and difficult to revise
-- The challenge is not data formats — it is *curatorial practices*
-- We need DevOps-inspired workflows: continuous development, version control, peer review
-- **Part 2** will introduce Git and GitHub, and map each concept to corpus work
+→ This is exactly what **Git** (a software) and **GitHub** (a platform, out of many) were built for
 
 ---
 
 *References*
 
 - Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.
+- Pannitto, L. (submitted). Data Plumbing Toolkit: managing the invisible infrastructure of DH work. *European Summer University in Digital Humanities* workshop proposal.
 - Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.
 - Lehmann, C. (2004). Data in linguistics. *The Linguistic Review*.
 - Linell, P. (2019). The written language bias 40 years after. *Language Sciences*.
 - Mauri et al. (2019). KIParla corpus: a new resource for spoken Italian. *CLiC-it*.
-- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *CLARIN*.
+- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *forthcoming*.
 - Pannitto et al. (2025). Introducing KIParla forest. *DepLing / SyntaxFest*.
 - Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.

@@ -333,6 +333,26 @@ linearized exports
 - The pipeline is a *one-way street* — upstream corrections do not propagate to downstream layers or exports
 - Validation is *not enforced* — annotation errors only surface when someone notices them, and it's hard to propagate corrections
 - At this scale, and with a growing corpus, consistency *cannot be maintained manually* — automatic pipelines are needed
+- Each undocumented shortcut, implicit modeling choice, and ad hoc format migration accumulates as **technical and conceptual debt** — making future transformations, collaboration, and reuse increasingly fragile
+
+---
+
+## From pipeline to pivot
+
+The linear model treats ELAN as the authoritative source. Every derived format is a dead end — a correction to the source does not reach the outputs, and there is no path back.
+
+**The pivot model** replaces this with a single maintained representation at the centre:
+
+![Pivot architecture: TSV format at centre, derived formats around it with bidirectional conversion](assets/pivot-architecture.svg)
+
+The pivot is a **verticalized, pseudo-tokenized TSV** — one token per row, enriched with lexical, prosodic, interactional, and alignment features. From it, all formats are reproducibly derived by conversion scripts. Crucially, the architecture is **bidirectional**: corrections applied at the pivot level propagate to all derived formats.
+
+- **Version-controlled** — every change is a commit; full history is preserved
+- **Validated at ingestion** — well-formedness constraints enforced before any format is generated
+- **Diff-able and human-readable** — inspectable with a text editor or spreadsheet, no specialist tool required
+- **Extensible** — new annotation layers are added as columns, without restructuring existing data
+
+*Pannitto & Mauri (2025)*
 
 ---
 
@@ -373,6 +393,13 @@ In the .eaf XML, they live **3000+ lines apart**:
 - Additional annotation layers are **external or tool-dependent**
 - No path to add morphosyntax, prosody, or speech acts without breaking the format
 
+**The deeper problem**: these formats, tools, and pipelines were not designed with spoken interaction in mind. They do not model:
+- the **speaker** as a social agent producing situated language
+- the **interactional setting** — who is talking to whom, under what circumstances
+- **spoken-language specifics** — overlap, repair, prosody, turn-taking, disfluency
+
+They were built for text, then retrofitted for speech.
+
 ---
 
 ## What goes wrong without version control
@@ -381,9 +408,29 @@ In the .eaf XML, they live **3000+ lines apart**:
 | ------------------------ | ---------------------------------------- |
 | Opaque pipeline          | Cannot retrace annotation decisions      |
 | Non-reversible edits     | Ad-hoc choices crystallize permanently   |
-| Single expert bottleneck | Knowledge locked in one person           |
+| Single expert bottleneck | Knowledge locked in one person; infrastructure becomes unintelligible to the rest of the team |
 | No adjudication trail    | Inter-annotator disagreement invisible   |
 | Static releases          | Errors cannot be corrected incrementally |
+| Undocumented format migration | Each conversion introduces silent distortions of meaning |
+| Technical and conceptual debt | Earlier shortcuts constrain every future transformation |
+
+---
+
+## The invisible cost of infrastructure
+
+> "Digital Humanities projects often struggle not because of analytical complexity, but because of **fragile data workflows**, undocumented transformations, and ad hoc collaboration practices."
+>
+> — Pannitto (submitted)
+
+Infrastructure work is invisible — until it breaks. When it does, the cost is:
+
+- **Information loss**: transformations that cannot be reconstructed
+- **Misalignment between layers**: each format drifts independently
+- **Unintelligible archives**: corpora that become opaque artifacts rather than reusable research objects
+
+The standard response is to delegate all of this to a single technical expert. This creates its own risk: when that person leaves, the infrastructure becomes unmaintainable.
+
+The alternative is **distributed computational literacy** — shared understanding of version control, transformation logic, and documentation practices across the whole team. Not turning linguists into software engineers, but ensuring no one is left unable to navigate the systems that sustain their own research.
 
 ---
 
@@ -424,6 +471,8 @@ New data are added · Errors are corrected · Formats evolve · New reuse scenar
 
 → This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself
 
+Without explicit documentation of data models, processing steps, and dependencies, archived corpora risk becoming **opaque artifacts** rather than reusable research objects — intelligible only to whoever built them, and only for as long as that person is available.
+
 ---
 
 ## The DevOps analogy
@@ -451,54 +500,83 @@ A workflow that is:
 - **Participatory** — open to community contributions and corrections
 - **Reversible** — any change can be traced and undone
 
-→ This is exactly what **Git** and **GitHub** were built for
-
----
-
-## Part 1 — Summary
-
-- Spoken corpora are multilayer, multi-person, multi-tool artefacts
-- Current pipelines are opaque, hard to scale, and difficult to revise
-- The challenge is not data formats — it is *curatorial practices*
-- We need DevOps-inspired workflows: continuous development, version control, peer review
-- **Part 2** will introduce Git and GitHub, and map each concept to corpus work
+→ This is exactly what **Git** (a software) and **GitHub** (a platform, out of many) were built for
 
 ---
 
 *References*
 
 - Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.
+- Pannitto, L. (submitted). Data Plumbing Toolkit: managing the invisible infrastructure of DH work. *European Summer University in Digital Humanities* workshop proposal.
 - Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.
 - Lehmann, C. (2004). Data in linguistics. *The Linguistic Review*.
 - Linell, P. (2019). The written language bias 40 years after. *Language Sciences*.
 - Mauri et al. (2019). KIParla corpus: a new resource for spoken Italian. *CLiC-it*.
-- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *CLARIN*.
+- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *forthcoming*.
 - Pannitto et al. (2025). Introducing KIParla forest. *DepLing / SyntaxFest*.
 - Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
 `,
   "section2.md": `# Git & GitHub: core concepts
 
-**Summer School Lab · Part 2 of 4**
-Dr. Ludovica Pannitto — Università di Bologna
-
 ---
 
 ## From the problem to the tool
 
-In Part 1 we established that spoken corpus pipelines suffer from:
+So: often spoken corpus pipelines suffer from
 
-- Opacity — decisions are not recorded
-- Irreversibility — changes cannot be undone safely
-- Bottlenecks — knowledge concentrated in one person
-- Static releases — errors persist across versions
+- Opacity — decisions are not recorded > because it takes a lot of time to track things!
+- Irreversibility — changes cannot be undone safely > how should we propagate changes to all artifacts? Better not to change anything...
+- Bottlenecks — knowledge concentrated in one person > the PI often is the only one aware of the entire ecosystem
+- Static releases — no clear relation between releases
 
-**Part 2** introduces the toolbox that addresses all four problems at once.
+---
+
+## We have all seen this
+
+\`\`\`
+BOA1010_final.eaf
+BOA1010_final_revised.eaf
+BOA1010_final_revised_2.eaf
+BOA1010_FINAL_USE_THIS_ONE.eaf
+BOA1010_FINAL_USE_THIS_ONE_v2_corrected.eaf
+BOA1010_FINAL_USE_THIS_ONE_v2_corrected_LP.eaf
+\`\`\`
+
+- Which is the authoritative version?
+- Who made the \`_corrected\` changes, and why?
+- Can you go back to before the last revision round?
+- What happens when two annotators work on different copies?
+
+This is the default state of most annotation projects without version control.
+
+*Software Carpentry (2024)*
 
 ---
 
 ## What is a version control system?
 
 A **Version Control System (VCS)** records changes to a file repository over time.
+
+Instead of keeping N copies of a file, it stores a **base version** and a **sequence of changes**:
+
+\`\`\`
+BOA1010 [base — initial transcription]
+    │  commit a3f9c12  "initial ELAN transcription"
+    ↓
+BOA1010 + Δ1
+    │  commit b7e2a41  "add UPOS tags tokens 1–20"
+    ↓
+BOA1010 + Δ1 + Δ2
+    │  commit c1d8f33  "fix overlap annotation token 14"
+    ↓
+BOA1010 + Δ1 + Δ2 + Δ3          ← current state
+\`\`\`
+
+Any past version is reconstructible. Any change can be undone. The **commit message is the rationale**, stored permanently alongside the change.
+
+> "Version control is like an unlimited undo — and it also allows many people to work in parallel."
+>
+> — *Software Carpentry, Version Control with Git (2024)*
 
 It allows a team to:
 
@@ -512,6 +590,25 @@ It allows a team to:
 
 ---
 
+## Why not just use Track Changes?
+
+The closest familiar tool is *Track Changes* in word processors. It fails for annotation work because:
+
+| Limitation | Consequence for annotation |
+|---|---|
+| History is **lost on acceptance** | Authorship and rationale vanish once changes are merged |
+| No **parallel branches** | Collaborators must work sequentially or merge manually |
+| **Not plain-text friendly** | Does not work with CoNLL-U, TSV, XML — the formats we actually use |
+| No **programmatic access** | You cannot run a validation script or trigger a conversion |
+| No **conflict detection** | Two people editing the same span silently overwrite each other |
+
+> Track Changes is designed for a document that reaches a final state.
+> A corpus is never final — it is a living artefact.
+
+*Software Carpentry (2024)*
+
+---
+
 ## Git: the most widely used VCS
 
 **Git** is a distributed version control system. Every contributor has a full copy of the repository history.
@@ -520,30 +617,12 @@ Key properties:
 - **Free and open source**
 - Works entirely on the command line — but has many GUI frontends
 - Designed for plain text files → ideal for CoNLL-U, TSV, XML, Markdown
-- Does not require a server — repositories live on your machine
-- Integrates with hosting platforms: GitHub, GitLab, Codeberg
+- Does not (necessarily) require a server — repositories live on your machine
+- Integrates with hosting platforms: GitHub, GitLab, own server
 
 *Created by Linus Torvalds in 2005 for Linux kernel development*
 
----
-
-## GitHub: Git with collaboration superpowers
-
 **GitHub** is a web-based hosting service for Git repositories.
-
-Git provides version control. GitHub adds:
-
-| Git (local) | GitHub (web platform) |
-|---|---|
-| Commit history | Visual diff viewer |
-| Branches | Pull requests |
-| Merge | Code review interface |
-| Tags | Releases |
-| Hooks | GitHub Actions (CI/CD) |
-| — | Issues (discussion threads) |
-| — | Community forks |
-
-*All of this is free for public repositories — including academic projects.*
 
 ---
 
@@ -586,6 +665,68 @@ The repo stores:
 
 ---
 
+## Local and remote repositories
+
+In a distributed VCS, every collaborator has a **full copy** of the repository. Git distinguishes two kinds:
+
+- **Remote repo** — hosted on a server (GitHub, GitLab, institutional server); the shared reference point for the team
+- **Local repo** — on your personal machine; where you actually do your work
+
+The three operations that connect them:
+
+\`\`\`
+git clone <url>   # copy the remote repo to your machine — done once
+git pull          # fetch the latest commits from remote into your local repo
+git push          # send your local commits up to the remote
+\`\`\`
+
+\`\`\`
+remote repo (GitHub)
+      │  clone ↓        ↑ push / ↓ pull
+      ├── Maria's local repo    (annotates BOA1010)
+      └── Giulio's local repo   (annotates PSB054)
+\`\`\`
+
+Each annotator works locally and commits at their own pace. Changes reach the shared remote only via an explicit \`push\`.
+
+*Zeman, Savary & Guillaume (2024)*
+
+---
+
+## The four states of a file
+
+Every file in a Git repository is in one of four states:
+
+\`\`\`
+[untracked]                         not known to Git
+     │  git add
+     ▼
+[staged]         change selected, ready to be included in the next commit
+     │  git commit
+     ▼
+[committed / unmodified]            safely stored in the Git database
+     │  edit file
+     ▼
+[modified]       file changed on disk, but change not yet staged
+     │  git add
+     ▼
+[staged] → ...
+\`\`\`
+
+Three areas a file moves through:
+
+| Area | Location | Role |
+|---|---|---|
+| Working directory | \`project/\` | where you edit |
+| Staging area | \`project/.git/index\` | what goes into the next commit |
+| Git database | \`project/.git/objects\` | permanent history |
+
+The staging step lets you commit **some** changes from your working directory while leaving others for a later commit — useful when one session touches multiple annotation files but only one is ready for review.
+
+*Zeman, Savary & Guillaume (2024)*
+
+---
+
 ## Concept 2: Commit
 
 A **commit** records the state of one or more files at a specific point in time.
@@ -596,7 +737,7 @@ git commit -m "Add UPOS tags for BOA1010, tokens 1-45"
 \`\`\`
 
 Each commit has:
-- A **unique hash** (e.g. \`a3f9c12\`) — an immutable identifier
+- A **unique hash** (e.g. \`a3f9c12\`) — a 40-character hexadecimal checksum calculated from the contents of all tracked files; Git shortens it to the first 6–7 characters for display
 - A **message** — the annotation rationale, in plain language
 - A **diff** — exactly which lines changed
 - **Author** and **timestamp**
@@ -642,6 +783,36 @@ Rules:
 - When work is ready, it is *proposed* for merging via a pull request
 
 → Parallel annotation without conflicts
+
+---
+
+## When two people edit the same file: conflicts
+
+A **conflict** occurs when two collaborators modify the **same lines** of the same file independently, and one tries to push after the other has already done so.
+
+\`\`\`
+Maria pushes commit 1  →  remote updated
+Giulio tries to push commit 2  →  REJECTED: remote has commits Giulio doesn't have
+    Giulio must first: git pull
+    Git attempts automatic merge
+    If the same lines were changed by both: CONFLICT — must be resolved manually
+\`\`\`
+
+What a conflict looks like inside the file:
+
+\`\`\`diff
+<<<<<<< HEAD  (Giulio's version)
+1  e  e  CCONJ  _  _  3  cc    _  _
+=======
+1  e  e  PART   _  _  3  mark  _  _
+>>>>>>> origin/main  (Maria's version)
+\`\`\`
+
+Giulio must choose one version (or write a combined one), remove the conflict markers, and commit.
+
+**How the branch workflow prevents this**: annotators work on **separate branches**, usually on **separate files**. Conflicts only arise if two people touch the same token in the same file — which the branch + pull-request model makes rare and detectable before merge.
+
+*Zeman, Savary & Guillaume (2024)*
 
 ---
 
@@ -792,6 +963,8 @@ Annotators unfamiliar with Git face a real barrier. Mitigation strategies:
 *References*
 
 - de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
+- Software Carpentry (2024). *Version Control with Git*. The Carpentries. https://swcarpentry.github.io/git-novice/
+- Zeman, D., Savary, A. & Guillaume, B. (2024). Git Infrastructure. *UniDive Training School*, Chișinău.
 - Palmer, M. & Xue, N. (2010). Linguistic annotation. Chapter 10.
 - San, N. (2016). Using version control for a reproducible workflow in acoustic phonetics. *SST2016*.
 - Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
@@ -1100,9 +1273,6 @@ Su GitHub, un tag crea automaticamente una **Release** con:
 `,
   "section4.md": `# Hands-on: building the workflow
 
-**Summer School Lab · Part 4 of 4**
-Dr. Ludovica Pannitto — Università di Bologna
-
 ---
 
 ## What we will build today
@@ -1256,7 +1426,7 @@ If the Action **fails**, read the error output — it tells you exactly which ro
 
 ## Step 6 (annotator): open a pull request
 
-1. Go to the repo page → click **Compare & pull request**  
+1. Go to the repo page → click **Compare & pull request**
    (GitHub shows this banner automatically after a push)
 2. Set:
    - **base:** \`main\`
@@ -1291,9 +1461,9 @@ As manager, open the PR. You will see:
 
 **Leave a review comment** on a specific line:
 
-> Token 1-2 (\`quindi\`): ADV is correct here, but note that  
-> in our corpus \`quindi\` often functions as a discourse  
-> connector rather than a pure adverb. See guideline §3.4.  
+> Token 1-2 (\`quindi\`): ADV is correct here, but note that
+> in our corpus \`quindi\` often functions as a discourse
+> connector rather than a pure adverb. See guideline §3.4.
 > For now ADV is fine — worth flagging for future discussion.
 
 This comment is **permanently recorded** in the PR thread.
@@ -1455,12 +1625,12 @@ Things we did not cover — threads worth following:
 
 ## Thank you
 
-Dr. Ludovica Pannitto  
-Alma Mater Studiorum — Università di Bologna  
+Dr. Ludovica Pannitto
+Alma Mater Studiorum — Università di Bologna
 \`ludovica.pannitto@unibo.it\`
 
-*KIParla corpus:* \`www.kiparla.it\`  
-*KIParla Forest:* Pannitto et al. (2025), DepLing/SyntaxFest  
+*KIParla corpus:* \`www.kiparla.it\`
+*KIParla Forest:* Pannitto et al. (2025), DepLing/SyntaxFest
 *GitHub workflow:* Waldon & Schneider (2025), LAW XIX
 
 ---
