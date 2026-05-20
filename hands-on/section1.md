@@ -29,15 +29,22 @@ A spoken corpus is not a text. It is a **stratification of interpretive layers**
 
 ```
 raw audio
-  └── pseudonymized audio          [GDPR pipeline]
-        └── Jefferson transcription [ELAN / expert linguist]
-              └── orthographic form  [normalization scripts]
-                    └── morphosyntax  [POS tagger + manual revision]
+  └── pseudonymized audio              [GDPR pipeline]
+        └── Jefferson transcription    [ELAN / expert linguist]
+              └── orthographic form    [normalization scripts]
+                    └── morphosyntax   [POS tagger + manual revision]
                           └── syntax   [UD treebank annotation]
-                                └── metadata
+                                └── speech acts / pragmatics   [manual annotation]
+                                      └── metadata
 ```
 
 Each layer: different person · different tool · different time
+
+Downstream exports from these layers:
+- **CoNLL-U** — UD treebanks, NLP pipelines
+- **Verticalized (.vert / CWB)** — NoSketchEngine, Sketch Engine, ANNIS, corpus query systems
+- **Jefferson .txt / CHAT** — interactional analysis, CLAN
+- **TEI-ISO 24624** — archiving and exchange
 
 ---
 
@@ -62,42 +69,71 @@ ELAN transcription  (.eaf XML)
     ↓
 expert revision + pseudonymization  (one person)
     ↓
-linearized exports  (Jefferson .txt, orthographic .txt, NoSketchEngine .vert)
+[morphosyntactic annotation  (POS tagger + manual revision)]
+    ↓
+linearized exports
+    ├── Jefferson .txt /             [interactional analysis]
+    ├── orthographic .txt            [readability, downstream NLP]
+    ├── CoNLL-U                      [UD treebanks, NLP pipelines]
+    └── verticalized .vert           [NoSketchEngine, Sketch Engine]
 ```
 
-**Problem**: the pipeline is a *one-way street*
+**Problems with the current pipeline**:
+
+- The pipeline is a *one-way street* — upstream corrections do not propagate to downstream layers or exports
+- Validation is *not enforced* — annotation errors only surface when someone notices them, and it's hard to propagate corrections
+- At this scale, and with a growing corpus, consistency *cannot be maintained manually* — automatic pipelines are needed
 
 ---
 
 ## What an .eaf file looks like
 
+In ELAN, these three utterances appear **side by side** on a shared timeline:
+
+![ELAN view of KPN006 — overlapping turns across three speaker tiers](assets/elan-kipn006.png)
+
+> PKP019: `eh (.) se no dice là si fa [c~] (.) si fa casotto`
+> PKP014: `[sì sì sì]`  ← overlaps with PKP019
+> PKP020: `>fa vedere<`  ← overlaps near the end
+
+In the .eaf XML, they live **3000+ lines apart**:
+
 ```xml
-<ANNOTATION>
-  <ALIGNABLE_ANNOTATION ANNOTATION_ID="a42"
-    TIME_SLOT1="ts103" TIME_SLOT2="ts104">
-    <ANNOTATION_VALUE>
-      e quindi stu[di: pittura?
-    </ANNOTATION_VALUE>
-  </ALIGNABLE_ANNOTATION>
-</ANNOTATION>
+<!-- line 4630 — PKP014 -->
+<ALIGNABLE_ANNOTATION ANNOTATION_ID="a1262"
+    TIME_SLOT_REF1="ts2522" TIME_SLOT_REF2="ts2523">
+  <ANNOTATION_VALUE>[sì sì sì]</ANNOTATION_VALUE>
+</ALIGNABLE_ANNOTATION>
+
+<!-- line 5337 — PKP020 -->
+<ALIGNABLE_ANNOTATION ANNOTATION_ID="a179"
+    TIME_SLOT_REF1="ts356" TIME_SLOT_REF2="ts357">
+  <ANNOTATION_VALUE>&gt;fa vedere&lt;</ANNOTATION_VALUE>
+</ALIGNABLE_ANNOTATION>
+
+<!-- line 7669 — PKP019 -->
+<ALIGNABLE_ANNOTATION ANNOTATION_ID="a177"
+    TIME_SLOT_REF1="ts352" TIME_SLOT_REF2="ts353">
+  <ANNOTATION_VALUE>eh (.) se no dice là si fa [c~] (.) si fa casotto</ANNOTATION_VALUE>
+</ALIGNABLE_ANNOTATION>
 ```
 
-- Textual XML — readable only through ELAN
-- No clear unit descriptions
+- Temporal overlap is **not encoded** — only recoverable by cross-referencing `ts` IDs
+- Jefferson notation is **mangled** by XML escaping (`>` → `&gt;`)
 - Additional annotation layers are **external or tool-dependent**
-- Difficult to process at scale with standard NLP pipelines
+- No path to add morphosyntax, prosody, or speech acts without breaking the format
 
 ---
 
 ## What goes wrong without version control
 
-| Problem | Consequence |
-|---|---|
-| Opaque pipeline | Cannot retrace annotation decisions |
-| Non-reversible edits | Ad-hoc choices crystallize permanently |
-| Single expert bottleneck | Knowledge locked in one person |
-| No adjudication trail | Inter-annotator disagreement invisible |
-| Static releases | Errors cannot be corrected incrementally |
+| Problem                  | Consequence                              |
+| ------------------------ | ---------------------------------------- |
+| Opaque pipeline          | Cannot retrace annotation decisions      |
+| Non-reversible edits     | Ad-hoc choices crystallize permanently   |
+| Single expert bottleneck | Knowledge locked in one person           |
+| No adjudication trail    | Inter-annotator disagreement invisible   |
+| Static releases          | Errors cannot be corrected incrementally |
 
 ---
 
@@ -105,12 +141,14 @@ linearized exports  (Jefferson .txt, orthographic .txt, NoSketchEngine .vert)
 
 Spoken language research is characterised **not by a lack of standards, but by the coexistence of partially incompatible ones**, each optimised for a specific stage of the data lifecycle.
 
-| Format | Strength | Limitation |
-|---|---|---|
-| ELAN / .eaf | Time alignment, interactional detail | Tool-dependent, hard to diff |
-| CHAT | Transcription conventions | Not designed for large-scale annotation |
-| TEI-ISO 24624 | Exchange and preservation | Rarely used as working format |
-| CoNLL-U | NLP pipelines, UD treebanks | Loses interactional structure |
+| Format              | Strength                                     | Limitation                              |
+| ------------------- | -------------------------------------------- | --------------------------------------- |
+| ELAN / .eaf         | Time alignment, interactional detail         | Tool-dependent, hard to diff            |
+| CHAT                | Transcription conventions                    | Not designed for large-scale annotation |
+| TEI-ISO 24624       | Exchange and preservation                    | Rarely used as working format           |
+| CoNLL-U             | NLP pipelines, UD treebanks                  | Loses interactional structure           |
+| .vert / CWB         | Corpus query (NoSketchEngine, Sketch Engine) | Flat, no layer hierarchy                |
+| ISO 24617-2 (SemAF) | Speech act / dialogue act annotation         | Complex, low adoption                   |
 
 ---
 
@@ -140,14 +178,14 @@ New data are added · Errors are corrected · Formats evolve · New reuse scenar
 
 ## The DevOps analogy
 
-| Software development | Corpus development |
-|---|---|
-| Codebase | Annotated corpus |
-| Feature branch | Annotator's working copy |
-| Code review | Annotation adjudication |
-| CI/CD pipeline | Validation + format conversion scripts |
-| Release tag | Corpus version (e.g. v1.1.0) |
-| Issue tracker | Annotation guideline discussion |
+| Software development | Corpus development                     |
+| -------------------- | -------------------------------------- |
+| Codebase             | Annotated corpus                       |
+| Feature branch       | Annotator's working copy               |
+| Code review          | Annotation adjudication                |
+| CI/CD pipeline       | Validation + format conversion scripts |
+| Release tag          | Corpus version (e.g. v1.1.0)           |
+| Issue tracker        | Annotation guideline discussion        |
 
 *Steiner (2017) — "A DevOps manifesto for speech corpus management"*
 
