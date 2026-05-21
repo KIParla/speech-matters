@@ -4,26 +4,12 @@
 
 ## Before we start: forming groups
 
-This tutorial has two kinds of prior knowledge in the room — **Git experience** and **Italian**. Groups are mixed deliberately so that each person can contribute what they know and learn what they don't.
-
-**The algorithm (≈ 2 minutes, no materials needed):**
-
 1. Everyone stands up
 2. *"If you have used Git before — even once — move to the left side of the room. If not, stay right."*
 3. *"Now within each half: if you speak Italian, move to the front. Otherwise, the back."*
-   → You now have four quadrants: Git+Italian · Git+other · noGit+Italian · noGit+other
-4. Count heads in each quadrant; divide by target group size (3–4)
+4. Count heads in each quadrant; divide by target group size (4–5)
 5. Take one person from each quadrant in turn to fill each group
-6. Once in groups, assign roles by counting off: **1 = Manager · 2 = Annotator A · 3 = Annotator B · 4 = Annotator C**
-
-**Role logic:**
-
-| Role | Leverage |
-|---|---|
-| **Manager** | → Git-experienced student: handles workflow, unblocks others |
-| **Annotator C** (CoNLL-U syntax) | → Italian speaker: syntactic judgements require understanding the utterance |
-| **Annotator A** (EAF timestamps) | → anyone: purely technical, no Italian needed |
-| **Annotator B** (pivot TSV, prosody) | → anyone: mechanical task, well-specified in the guidelines |
+6. Once in groups, assign roles by counting off: **1 = Manager · 2 = Annotators**
 
 One rule: the Git-experienced person **explains, does not type**. Others drive the keyboard.
 
@@ -64,7 +50,7 @@ BOA1010_FINAL_USE_THIS_ONE_v2_corrected_LP.eaf
 
 A **Version Control System (VCS)** records changes to a file repository over time.
 
-Instead of keeping N copies of a file, it stores a **base version** and a **sequence of changes**:
+Instead of keeping multiple copies of a file, it stores a **base version** and a **sequence of changes**:
 
 ```
 BOA1010 [base — initial transcription]
@@ -79,7 +65,8 @@ BOA1010 + Δ1 + Δ2
 BOA1010 + Δ1 + Δ2 + Δ3          ← current state
 ```
 
-Any past version is reconstructible. Any change can be undone. The **commit message is the rationale**, stored permanently alongside the change.
+Any past version is reconstructible. Any change can be undone.
+The **commit message is the rationale**, stored permanently alongside the change.
 
 > "Version control is like an unlimited undo — and it also allows many people to work in parallel."
 >
@@ -92,8 +79,8 @@ It allows a team to:
 - Revert to any previous state
 - Work in parallel without conflicts
 
-> Version control is standard practice in software engineering.
-> It is still underused in linguistic annotation — despite the fact that **annotation is a form of collaborative software development**.
+Version control is standard practice in software engineering.
+It is still underused in linguistic annotation, despite the fact that **annotation is a form of collaborative software development**.
 
 ---
 
@@ -122,6 +109,7 @@ The closest familiar tool is *Track Changes* in word processors. It fails for an
 Every contributor has a full copy of the repository history.
 
 Key properties:
+
 - **Free and open source**
 - Works entirely on the command line — but has many GUI frontends
 - Designed for plain text files → ideal for CoNLL-U, TSV, XML, Markdown
@@ -178,6 +166,7 @@ my-corpus/
 ```
 
 The repo stores:
+
 - All annotation files (every version, forever)
 - All processing scripts
 - All metadata and documentation
@@ -197,14 +186,17 @@ git init
 # 3. Check what Git sees
 git status
 
-# 4. Create a README file
-echo "# My corpus" > README.md
+# 4. Create and open a README file in VSCode
+touch README.md
+code README.md
+# Add a line: "# My corpus", then save
 
 # 5. Check status again — notice README is now "untracked"
 git status
 ```
 
 **What to observe:**
+
 - `git init` creates a hidden `.git/` folder — that is the entire history database
 - `git status` reports which files Git knows about and which it does not
 - An untracked file exists on disk but is invisible to Git until you `git add` it
@@ -234,7 +226,8 @@ remote repo (GitHub)
       └── Giulio's local repo   (annotates PSB054)
 ```
 
-Each annotator works locally and commits at their own pace. Changes reach the shared remote only via an explicit `push`.
+Each annotator works locally and commits at their own pace.
+Changes reach the shared remote only via an explicit `push`.
 
 *Zeman, Savary & Guillaume (2024)*
 
@@ -258,24 +251,52 @@ git commit -m "Initial commit: add README"
 git log --oneline
 
 # 5. Edit the README, then check what Git sees
-echo "Spontaneous spoken Italian corpus" >> README.md
+code README.md
+# Add a line: "Spontaneous spoken Italian corpus", then save
 git status
 git diff README.md
 ```
 
 **What to observe:**
+
 - `git diff` shows exactly which lines changed before you stage them
 - `git log` shows the commit hash, author, timestamp, and message
 - After committing, the working directory is "clean" again
 
 ---
 
-## How a diff summarizes what changed
+## Troubleshooting: "Please tell me who you are"
 
-In Exercise 2 you ran:
+If `git commit` fails with an error like:
+
+```
+Author identity unknown
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+```
+
+Git needs to know who is making the commit. Run these **once** on your machine:
 
 ```bash
-echo "Spontaneous spoken Italian corpus" >> README.md
+git config --global user.email "your.email@example.com"
+git config --global user.name "Your Name"
+```
+
+Use your real name and the email linked to your GitHub account.
+After that, retry `git commit`.
+
+---
+
+## How a diff summarizes what changed
+
+In Exercise 2 you opened `README.md` in VSCode and added a second line, then ran:
+
+```bash
 git diff README.md
 ```
 
@@ -285,7 +306,7 @@ Your README started as a single line:
 # My corpus
 ```
 
-After the `echo` command it has a second line:
+After saving the file it has a second line:
 
 ```
 # My corpus
@@ -349,6 +370,7 @@ git commit -m "Add UPOS tags for BOA1010, tokens 1-45"
 ```
 
 Each commit has:
+
 - A **unique hash** (e.g. `a3f9c12`) — a 40-character hexadecimal checksum calculated from the contents of all tracked files; Git shortens it to the first 6–7 characters for display
 - A **message** — the annotation rationale, in plain language
 - A **diff** — exactly which lines changed
@@ -376,13 +398,41 @@ The commit message explains *why*: `"sì at 138-18 is a discourse marker attache
 
 ---
 
+## Exercise 2b — Push your repository to GitHub
+
+Before exploring an existing repo, let's put your own work on GitHub.
+
+**Step 1 — Create a new repository on GitHub**
+
+1. Go to [github.com](https://github.com) and log in
+2. Click **+** → **New repository**
+3. Name it `my-corpus`; leave it **empty** (no README, no .gitignore)
+4. Click **Create repository**
+
+**Step 2 — Connect your local repo and push**
+
+```bash
+# Add GitHub as the remote (paste the URL from the GitHub page)
+git remote add origin https://github.com/<your-username>/my-corpus.git
+
+# Rename the default branch to "main" (if not already)
+git branch -M main
+
+# Push your commits
+git push -u origin main
+```
+
+After pushing, refresh the GitHub page — your `README.md` and commit history should be visible.
+
+---
+
 ## Exercise 3 — Fork, clone, and explore a richer history
 
 This exercise uses **speech-matters-demo**, a pre-built repository with several commits already in it.
 
 **Step 1 — Fork and clone**
 
-1. Go to `github.com/ellepannitto/speech-matters-demo`
+1. Go to `github.com/KIParla/speech-matters-demo`
 2. Click **Fork** (top-right) — this creates your own copy on GitHub
 3. Clone your fork to your machine:
 
@@ -411,6 +461,7 @@ git status                     # should be clean
 ```
 
 **What to observe:**
+
 - `git log --oneline` gives you a compact timeline of every decision in the project
 - `git show <hash>` displays the full diff for any past commit — message, author, and changed lines
 - `git checkout <hash>` moves the entire working directory to that past state ("detached HEAD")
@@ -431,11 +482,10 @@ main branch (gold annotations, always valid)
 ```
 
 Rules:
+
 - `main` is always in a valid, releasable state
 - Annotators work on their own branch — **nothing they do affects main**
 - When work is ready, it is *proposed* for merging via a pull request
-
-→ Parallel annotation without conflicts
 
 ---
 
@@ -448,8 +498,10 @@ git checkout -b annotator/BOA1010
 # 2. Check which branch you are on
 git branch
 
-# 3. Make a change on this branch
-echo "token_id\tspeaker\tform" > pivot/BOA1010.tsv
+# 3. Make a change on this branch — create and open a new file in VSCode
+mkdir -p pivot
+
+# Add a header line: token_id	speaker	form  (tab-separated), then save
 git add pivot/BOA1010.tsv
 git commit -m "Add BOA1010 pivot stub"
 
@@ -463,6 +515,7 @@ ls pivot/
 ```
 
 **What to observe:**
+
 - `git branch` shows all branches; the current one is marked with `*`
 - Switching branches changes the working directory — files appear and disappear
 - `main` is unaffected by anything you do on your branch
@@ -471,7 +524,8 @@ ls pivot/
 
 ## When two people edit the same file: conflicts
 
-A **conflict** occurs when two collaborators modify the **same lines** of the same file independently, and one tries to push after the other has already done so.
+A **conflict** occurs when two collaborators modify the **same lines** of the same file independently,
+and one tries to push after the other has already done so.
 
 ```
 Maria pushes commit 1  →  remote updated
@@ -511,7 +565,8 @@ It is also a **collaborative space**:
 4. Discussion happens in threaded comments, **permanently recorded**
 5. Manager either approves → merge, or requests changes → annotator revises
 
-> The PR thread is the adjudication record. Every decision, every disagreement, every resolved ambiguity — preserved forever, publicly auditable.
+> The PR thread is the adjudication record.
+> Every decision, every disagreement, every resolved ambiguity — preserved forever, publicly auditable.
 
 ---
 
@@ -561,8 +616,6 @@ Triggered on every commit or PR — no manual steps needed.
 
 ## Exercise 5 — Push and open a pull request on GitHub
 
-*This exercise requires a GitHub account and a remote repository.*
-
 ```bash
 # 1. Push your branch to GitHub
 git push -u origin annotator/BOA1010
@@ -580,6 +633,7 @@ Then in the browser:
 8. Merge the PR into `main`
 
 **What to observe:**
+
 - The diff view shows exactly which lines were added or changed
 - Comments are anchored to specific lines and preserved forever
 - After merge, `main` contains your changes and the branch can be deleted
@@ -590,15 +644,15 @@ Then in the browser:
 
 Everything in Exercises 3–5 is possible entirely from the browser — no `git clone`, no terminal.
 
-| Action | How |
-|---|---|
-| Fork a repo | Click **Fork** on any GitHub repo page |
-| Create a branch | Branch dropdown → type name → **Create branch** |
-| Edit a file | Click the pencil icon on any file |
-| Commit | Scroll to "Commit changes" at the bottom of the editor |
-| Open a PR | Click **Compare & pull request** after pushing |
-| Review a PR | **Files changed** tab → click `+` on any line to comment |
-| Merge | Click **Merge pull request** |
+| Action          | How                                                      |
+| --------------- | -------------------------------------------------------- |
+| Fork a repo     | Click **Fork** on any GitHub repo page                   |
+| Create a branch | Branch dropdown → type name → **Create branch**          |
+| Edit a file     | Click the pencil icon on any file                        |
+| Commit          | Scroll to "Commit changes" at the bottom of the editor   |
+| Open a PR       | Click **Compare & pull request** after pushing           |
+| Review a PR     | **Files changed** tab → click `+` on any line to comment |
+| Merge           | Click **Merge pull request**                             |
 
 Useful for annotators who are new to version control — they can start contributing immediately without any local setup.
 
@@ -649,6 +703,7 @@ Approves → Merge
 **Universal Dependencies** (UD) is the largest multilingual treebank collection in existence — 100+ languages, maintained by a global community.
 
 UD uses GitHub for:
+
 - Hosting all treebank repositories
 - Discussing annotation guidelines (Issues)
 - Tracking errors and corrections (Issues + PRs)

@@ -147,7 +147,7 @@ At scale — thousands of TUs, multiple pause types, overlapping spans — **thi
 
 ## Conversion scripts are not optional
 
-The pivot↔derived format mappings encode decisions about how phenomena are represented in each target format. Those decisions need to be:
+The pivot-to-derived format mappings encode decisions about how phenomena are represented in each target format. Those decisions need to be:
 
 - **Explicit** — written down as code, not tribal knowledge
 - **Reproducible** — running the script twice on the same input gives the same output
@@ -235,8 +235,6 @@ git show 18b5167 -- pivot/BOD2018.tsv
 git log -S "INTJ" --oneline -- conllu/BOD2018.conllu
 # 5c78119 fix POS for si and quindi per KIParla spoken Italian guidelines
 
-# How did the CoNLL-U file look before that fix?
-git show 5c78119~1:conllu/BOD2018.conllu
 ```
 
 Any annotation decision is recoverable: who made it, when, and why.
@@ -287,6 +285,7 @@ git push origin v1.1.0
 ```
 
 On GitHub, a tag automatically creates a **Release** with:
+
 - A changelog generated from commits
 - A downloadable archive (`.zip`, `.tar.gz`) of the corpus at that version
 - A link to Zenodo for a permanent DOI
@@ -310,18 +309,18 @@ Things we did not cover — threads worth following:
 *References*
 
 - [Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.](https://aclanthology.org/2023.findings-acl.495/)
-- de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
-- Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.
-- Dumitru et al. (2024). Version control for speech corpora. *KONVENS*.
-- Lehmann, C. (2004). Data in linguistics. *The Linguistic Review*.
-- Linell, P. (2019). The written language bias 40 years after. *Language Sciences*.
-- Mauri et al. (2019). KIParla corpus: a new resource for spoken Italian. *CLiC-it*.
-- Palmer, M. & Xue, N. (2010). Linguistic annotation. Chapter 10.
-- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *CLARIN*.
-- Pannitto et al. (2025). Introducing KIParla Forest. *DepLing / SyntaxFest*.
-- Rosenberg, A. (2012). Rethinking the corpus: moving towards dynamic linguistic resources. *Interspeech*.
-- San, N. (2016). Using version control for a reproducible workflow in acoustic phonetics. *SST2016*.
-- Software Carpentry (2024). *Version Control with Git*. The Carpentries. https://swcarpentry.github.io/git-novice/
-- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
-- Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.
-- Zeman, D., Savary, A. & Guillaume, B. (2024). Git Infrastructure. *UniDive Training School*, Chișinău.
+- [de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).](https://direct.mit.edu/coli/article/47/2/255/98516/Universal-Dependencies)
+- [Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.](https://aclanthology.org/2022.lrec-1.191.pdf)
+- [Dumitru et al. (2024). Version control for speech corpora. *KONVENS*.](https://aclanthology.org/2024.konvens-main.30/)
+- [Lehmann, C. (2004). Data in linguistics. *The Linguistic Review*.](https://www.degruyterbrill.com/document/doi/10.1515/tlir.2004.21.3-4.175/html)
+- [Linell, P. (2019). The written language bias 40 years after. *Language Sciences*.](https://www.sciencedirect.com/science/article/abs/pii/S0388000118303875)
+- [Mauri et al. (2019). KIParla corpus: a new resource for spoken Italian. *CLiC-it*.](https://aclanthology.org/2019.clicit-1.37/)
+- [Palmer, M. & Xue, N. (2010). Linguistic annotation. Chapter 10.](https://onlinelibrary.wiley.com/doi/10.1002/9781444324044.ch10)
+- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *forthcoming*.
+- [Pannitto et al. (2025). Introducing KIParla Forest. *DepLing / SyntaxFest*.](https://aclanthology.org/2025.depling-1.5/)
+- [Rosenberg, A. (2012). Rethinking the corpus: moving towards dynamic linguistic resources. *Interspeech*.](https://www.researchgate.net/publication/268254153_Rethinking_The_Corpus_Moving_towards_Dynamic_Linguistic_Resources)
+- [San, N. (2016). Using version control for a reproducible workflow in acoustic phonetics. *SST2016*.](https://discovery.ucl.ac.uk/id/eprint/10152457/1/SST2016_Proceedings.pdf#page=356)
+- [Software Carpentry (2024). *Version Control with Git*. The Carpentries.](https://swcarpentry.github.io/git-novice/)
+- [Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.](https://www.coli.uni-saarland.de/~steiner/publications/ESSV2017c.pdf)
+- [Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.](https://aclanthology.org/2025.law-1.27.pdf)
+- [Zeman, D., Savary, A. & Guillaume, B. (2024). Git Infrastructure. *UniDive Training School*, Chișinău.](https://unidive.lisn.upsaclay.fr/lib/exe/fetch.php?media=meetings:other-events:1st-training-school:unidive_chisinau_3_1_git.pdf)

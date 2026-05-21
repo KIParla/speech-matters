@@ -8,17 +8,7 @@
 >
 > — Lehmann (2004), *Data in linguistics*
 
-In NLP there is often an unstated assumption about the reality of the datum, spoken data confront us with the fact
-that every bit of information is in fact a stratification of several levels of interpretation
-
-| Research object          | Observable                                      |
-| ------------------------ | ----------------------------------------------- |
-| ultimate substrate       | speech event                                    |
-| epistemic object         | utterance in the speech event                   |
-| original recording       | video/audio tape of the speech event            |
-| derived representation   | transcription and annotation of the utterance   |
-
-*Adapted from Lehmann (2004), "Data in linguistics"*
+In Natural Language Processing there is often an unstated assumption about the reality of the datum, spoken data confront us with the fact that every bit of information is in fact a stratification of several levels of interpretation.
 
 ---
 
@@ -63,7 +53,7 @@ Downstream exports from these layers:
 
 A large (~2M token) corpus of spontaneous spoken Italian
 
-- Started in **2016**, collaboration between University of Bologna and University of Turin
+- Started in **2016**
 - Built around **modularity**: new modules added with compatible metadata and transcription conventions
 
 ```
@@ -131,11 +121,11 @@ In ELAN, these three utterances appear **side by side** on a shared timeline:
 
 ![ELAN view of KPN006 — overlapping turns across three speaker tiers](assets/elan-kipn006.png)
 
-> PKP019: `eh (.) se no dice là si fa [c~] (.) si fa casotto`
+> PKP019: `eh (.) se no dice là si fa [c~] (.) si fa casotto` ← short pauses, interrupted speech
 >
 > PKP014: `[sì sì sì]`  ← overlaps with PKP019
 >
-> PKP020: `>fa vedere<`  ← overlaps near the end
+> PKP020: `>fa vedere<`  ← fast paced speech
 
 In the .eaf XML, they live **3000+ lines apart**:
 
@@ -181,8 +171,10 @@ Infrastructure work is invisible — until it breaks. When it does, the cost is:
 The standard response is to delegate all of this to a single technical expert.
 This creates its own risk: when that person leaves, the infrastructure becomes unmaintainable.
 
-The alternative is **distributed computational literacy** — shared understanding of version control,
-transformation logic, and documentation practices across the whole team.
+> The alternative is **distributed computational literacy**
+
+shared understanding of version control, transformation logic, and documentation practices across the whole team.
+
 Not turning linguists into software engineers, but ensuring no one is left unable to navigate the systems
 that sustain their own research.
 
@@ -226,14 +218,15 @@ each optimised for a specific stage of the data lifecycle.
 
 New data are added · Errors are corrected · Formats evolve · New reuse scenarios emerge
 
-→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself — and software engineering already has mature tools for exactly this.
+→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself, and software engineering already has mature tools for exactly this.
 
 ---
 
 ## The DevOps analogy
 
 **DevOps** (**Dev**elopment + **Op**erations) is a set of practices from software engineering that breaks down the traditional wall between the people who *write* code and the people who *deploy and maintain* it.
-The combined workflow treats development as a *continuous, collaborative, and automated* process — rather than a sequence of isolated handoffs.
+
+The combined workflow treats development as a *continuous, collaborative, and automated* process.
 
 > every change is tracked, every build is reproducible, and quality is enforced automatically before anything reaches production.
 
@@ -252,13 +245,11 @@ The combined workflow treats development as a *continuous, collaborative, and au
 
 ## The answer already exists
 
-Software engineers faced the same problems decades ago — distributed teams, evolving artifacts, the need to track every change and recover from every mistake — and built tools to solve them.
-
-Those tools are:
+Software engineers faced the same problems decades ago (distributed teams, evolving artifacts, the need to track every change and recover from every mistake) and built tools to solve them:
 
 - **Git** — version control: every change is a commit, every state is recoverable
 - **GitHub / GitLab** — collaboration platforms: review, discussion, and automation built in
 - **CI/CD** — automated pipelines: validation and conversion run on every commit, not manually
 
-We do not need to build new infrastructure. We need to apply existing infrastructure to a new domain.
-
+> We do not need to build new infrastructure.
+> We need to apply existing infrastructure to a new domain.
