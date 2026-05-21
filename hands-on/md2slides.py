@@ -105,11 +105,21 @@ CSS = """\
   --font-body:'IBM Plex Sans','Helvetica Neue',sans-serif;
   --font-mono:'IBM Plex Mono','Courier New',monospace;
 }
+[data-theme="light"]{
+  --bg:#f5f3ef;--surface:#ffffff;--border:#ddd9d0;
+  --accent:#7a6118;--accent2:#2d6e84;
+  --text:#2a2825;--muted:#8a867e;--code-bg:#ede9e1;
+}
+[data-theme="light"] .slide pre code{color:#2d5566}
+[data-theme="light"] #lightbox{background:rgba(0,0,0,.7)}
+[data-theme="light"] .slide tr:hover td{background:rgba(122,97,24,.05)}
+[data-theme="light"] .nav-btn:hover:not(:disabled){background:rgba(122,97,24,.07)}
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-weight:300;font-size:16px;line-height:1.6;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 #topbar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:0.5px solid var(--border);background:var(--surface);flex-shrink:0;height:44px;gap:16px}
-#course-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;flex-shrink:0}
+#course-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;flex-shrink:0;cursor:pointer;transition:color .15s}
+#course-label:hover{color:var(--accent)}
 #section-tabs{display:flex;gap:2px;flex:1;justify-content:center;height:100%;align-items:stretch}
 .sec-tab{background:none;border:none;color:var(--muted);font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;padding:0 14px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
 .sec-tab:hover{color:var(--text)}
@@ -182,6 +192,8 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 .slide-home .home-chapters li:hover .home-ch-title{color:var(--accent)}
 .slide-home .home-ch-num{font-family:var(--font-mono);font-size:11px;color:var(--accent);letter-spacing:.1em;flex-shrink:0;width:40px}
 .slide-home .home-ch-title{font-size:clamp(14px,1.5vw,18px);color:var(--text);font-weight:300}
+#theme-btn{background:none;border:0.5px solid var(--border);color:var(--muted);font-family:var(--font-mono);font-size:11px;padding:3px 10px;border-radius:4px;cursor:pointer;letter-spacing:.06em;transition:color .15s,border-color .15s,background .15s;flex-shrink:0}
+#theme-btn:hover{color:var(--text);border-color:var(--accent)}
 """
 
 # ── JS runtime ────────────────────────────────────────────────────────────────
@@ -341,6 +353,7 @@ document.addEventListener('keydown',e=>{
 });
 document.getElementById('btn-next').addEventListener('click',()=>go(1));
 document.getElementById('btn-prev').addEventListener('click',()=>go(-1));
+document.getElementById('course-label').addEventListener('click',()=>showHomeSlide(-1));
 const lb=document.getElementById('lightbox');
 const lbImg=document.getElementById('lightbox-img');
 document.getElementById('stage').addEventListener('click',e=>{
@@ -351,6 +364,13 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&lb.classList.contai
 let tx=null;
 document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;});
 document.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)go(dx<0?1:-1);tx=null;});
+(function(){
+  const btn=document.getElementById('theme-btn');
+  const root=document.documentElement;
+  function applyTheme(t){root.setAttribute('data-theme',t);btn.textContent=t==='dark'?'light':'dark';btn.title='Switch to '+(t==='dark'?'light':'dark')+' theme';}
+  applyTheme(localStorage.getItem('theme')||'dark');
+  btn.addEventListener('click',()=>{const next=root.getAttribute('data-theme')==='dark'?'light':'dark';localStorage.setItem('theme',next);applyTheme(next);});
+})();
 (async()=>{
   buildTabs();
   const stage=document.getElementById('stage');
@@ -373,6 +393,7 @@ HTML_TEMPLATE = """\
 <meta name="license" content="CC BY-NC 4.0 — https://creativecommons.org/licenses/by-nc/4.0/">
 <meta name="author" content="{author}">
 <title>{title}</title>
+<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark');</script>
 {marked_script}
 <style>
 {css}
@@ -384,6 +405,7 @@ HTML_TEMPLATE = """\
   <span id="course-label">{course_label}</span>
   <nav id="section-tabs" aria-label="Sections"></nav>
   <div id="right-bar">
+    <button id="theme-btn" title="Toggle light / dark theme">light</button>
     <span id="slide-counter">— / —</span>
     <div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
   </div>
@@ -405,7 +427,7 @@ HTML_TEMPLATE = """\
   <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">
     CC BY-NC 4.0
   </a>
-  &nbsp;\u00b7&nbsp; {author} &nbsp;\u00b7&nbsp; {year}
+  &nbsp;\u00b7&nbsp; {author} &nbsp;\u00b7&nbsp; <a href="mailto:ludovica.pannitto@unibo.it">ludovica.pannitto@unibo.it</a> &nbsp;\u00b7&nbsp; {year}
 </div>
 
 <script>
@@ -439,10 +461,11 @@ def build_html(sections_meta: list[dict], args) -> str:
     author = args.author or "Dr. Ludovica Pannitto — Università di Bologna"
     year   = str(date.today().year)
 
-    # Course label: everything before the first dash in title, or full title
-    course_label = re.split(r'\s*[—–-]\s*', title)[0].strip()
-    if len(course_label) > 40:
-        course_label = course_label[:37] + '…'
+    # Course label: use text before first colon/dash in home_title, truncated
+    _cl_source = args.home_title if args.home_title else title
+    course_label = re.split(r'\s*[:—–]\s*', _cl_source)[0].strip()
+    if len(course_label) > 60:
+        course_label = course_label[:57] + '…'
 
     # Home title
     home_title = args.home_title
@@ -500,7 +523,7 @@ def parse_args():
     p.add_argument('--title', default='',
                    help='Browser tab title (default: first h1 of first file)')
     p.add_argument('--home-title',
-                   default='Lab – Hands-on Speech Corpus Processing: Standardization, Automation, and GitOps for Reproducibility',
+                   default='Hands-on Speech Corpus Processing: Standardization, Automation, and GitOps for Reproducibility',
                    help='Title shown on the home slide')
     p.add_argument('--author', default='',
                    help='Author string shown in footer (default: Dr. Ludovica Pannitto)')

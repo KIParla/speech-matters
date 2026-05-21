@@ -6,6 +6,7 @@
 <meta name="license" content="CC BY-NC 4.0 — https://creativecommons.org/licenses/by-nc/4.0/">
 <meta name="author" content="Dr. Ludovica Pannitto — Università di Bologna">
 <title>Git as a Collaborative Environment for Multilayer Spoken Resource Development</title>
+<script>document.documentElement.setAttribute('data-theme',localStorage.getItem('theme')||'dark');</script>
 <script>/**
  * marked v9.1.6 - a markdown parser
  * Copyright (c) 2011-2023, Christopher Jeffrey. (MIT Licensed)
@@ -22,11 +23,21 @@
   --font-body:'IBM Plex Sans','Helvetica Neue',sans-serif;
   --font-mono:'IBM Plex Mono','Courier New',monospace;
 }
+[data-theme="light"]{
+  --bg:#f5f3ef;--surface:#ffffff;--border:#ddd9d0;
+  --accent:#7a6118;--accent2:#2d6e84;
+  --text:#2a2825;--muted:#8a867e;--code-bg:#ede9e1;
+}
+[data-theme="light"] .slide pre code{color:#2d5566}
+[data-theme="light"] #lightbox{background:rgba(0,0,0,.7)}
+[data-theme="light"] .slide tr:hover td{background:rgba(122,97,24,.05)}
+[data-theme="light"] .nav-btn:hover:not(:disabled){background:rgba(122,97,24,.07)}
 @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=IBM+Plex+Sans:wght@300;400;500&family=IBM+Plex+Mono:wght@400;500&display=swap');
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-weight:300;font-size:16px;line-height:1.6;height:100vh;display:flex;flex-direction:column;overflow:hidden}
 #topbar{display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-bottom:0.5px solid var(--border);background:var(--surface);flex-shrink:0;height:44px;gap:16px}
-#course-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;flex-shrink:0}
+#course-label{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);white-space:nowrap;flex-shrink:0;cursor:pointer;transition:color .15s}
+#course-label:hover{color:var(--accent)}
 #section-tabs{display:flex;gap:2px;flex:1;justify-content:center;height:100%;align-items:stretch}
 .sec-tab{background:none;border:none;color:var(--muted);font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;padding:0 14px;cursor:pointer;border-bottom:2px solid transparent;transition:color .15s,border-color .15s;white-space:nowrap}
 .sec-tab:hover{color:var(--text)}
@@ -99,15 +110,18 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 .slide-home .home-chapters li:hover .home-ch-title{color:var(--accent)}
 .slide-home .home-ch-num{font-family:var(--font-mono);font-size:11px;color:var(--accent);letter-spacing:.1em;flex-shrink:0;width:40px}
 .slide-home .home-ch-title{font-size:clamp(14px,1.5vw,18px);color:var(--text);font-weight:300}
+#theme-btn{background:none;border:0.5px solid var(--border);color:var(--muted);font-family:var(--font-mono);font-size:11px;padding:3px 10px;border-radius:4px;cursor:pointer;letter-spacing:.06em;transition:color .15s,border-color .15s,background .15s;flex-shrink:0}
+#theme-btn:hover{color:var(--text);border-color:var(--accent)}
 
 </style>
 </head>
 <body>
 
 <div id="topbar">
-  <span id="course-label">Git as a Collaborative Environment fo…</span>
+  <span id="course-label">Hands-on Speech Corpus Processing</span>
   <nav id="section-tabs" aria-label="Sections"></nav>
   <div id="right-bar">
+    <button id="theme-btn" title="Toggle light / dark theme">light</button>
     <span id="slide-counter">— / —</span>
     <div id="progress-bar"><div id="progress-fill" style="width:0%"></div></div>
   </div>
@@ -129,7 +143,7 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
   <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="noopener">
     CC BY-NC 4.0
   </a>
-  &nbsp;·&nbsp; Dr. Ludovica Pannitto — Università di Bologna &nbsp;·&nbsp; 2026
+  &nbsp;·&nbsp; Dr. Ludovica Pannitto — Università di Bologna &nbsp;·&nbsp; <a href="mailto:ludovica.pannitto@unibo.it">ludovica.pannitto@unibo.it</a> &nbsp;·&nbsp; 2026
 </div>
 
 <script>
@@ -154,7 +168,7 @@ const SECTIONS = [
     "h1": "The KIParla pivot format"
   }
 ];
-const HOME_TITLE = "Speech Matters Spring School";
+const HOME_TITLE = "Hands-on Speech Corpus Processing: Standardization, Automation, and GitOps for Reproducibility";
 
 let currentSection = -1, currentSlide = 0;
 let sections = [];
@@ -314,6 +328,7 @@ document.addEventListener('keydown',e=>{
 });
 document.getElementById('btn-next').addEventListener('click',()=>go(1));
 document.getElementById('btn-prev').addEventListener('click',()=>go(-1));
+document.getElementById('course-label').addEventListener('click',()=>showHomeSlide(-1));
 const lb=document.getElementById('lightbox');
 const lbImg=document.getElementById('lightbox-img');
 document.getElementById('stage').addEventListener('click',e=>{
@@ -324,6 +339,13 @@ document.addEventListener('keydown',e=>{if(e.key==='Escape'&&lb.classList.contai
 let tx=null;
 document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;});
 document.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)go(dx<0?1:-1);tx=null;});
+(function(){
+  const btn=document.getElementById('theme-btn');
+  const root=document.documentElement;
+  function applyTheme(t){root.setAttribute('data-theme',t);btn.textContent=t==='dark'?'light':'dark';btn.title='Switch to '+(t==='dark'?'light':'dark')+' theme';}
+  applyTheme(localStorage.getItem('theme')||'dark');
+  btn.addEventListener('click',()=>{const next=root.getAttribute('data-theme')==='dark'?'light':'dark';localStorage.setItem('theme',next);applyTheme(next);});
+})();
 (async()=>{
   buildTabs();
   const stage=document.getElementById('stage');
@@ -604,6 +626,33 @@ We do not need to build new infrastructure. We need to apply existing infrastruc
 
 `,
   "section2.md": `# Git & GitHub: core concepts
+
+---
+
+## Before we start: forming groups
+
+This tutorial has two kinds of prior knowledge in the room — **Git experience** and **Italian**. Groups are mixed deliberately so that each person can contribute what they know and learn what they don't.
+
+**The algorithm (≈ 2 minutes, no materials needed):**
+
+1. Everyone stands up
+2. *"If you have used Git before — even once — move to the left side of the room. If not, stay right."*
+3. *"Now within each half: if you speak Italian, move to the front. Otherwise, the back."*
+   → You now have four quadrants: Git+Italian · Git+other · noGit+Italian · noGit+other
+4. Count heads in each quadrant; divide by target group size (3–4)
+5. Take one person from each quadrant in turn to fill each group
+6. Once in groups, assign roles by counting off: **1 = Manager · 2 = Annotator A · 3 = Annotator B · 4 = Annotator C**
+
+**Role logic:**
+
+| Role | Leverage |
+|---|---|
+| **Manager** | → Git-experienced student: handles workflow, unblocks others |
+| **Annotator C** (CoNLL-U syntax) | → Italian speaker: syntactic judgements require understanding the utterance |
+| **Annotator A** (EAF timestamps) | → anyone: purely technical, no Italian needed |
+| **Annotator B** (pivot TSV, prosody) | → anyone: mechanical task, well-specified in the guidelines |
+
+One rule: the Git-experienced person **explains, does not type**. Others drive the keyboard.
 
 ---
 
@@ -1164,6 +1213,24 @@ Then in the browser:
 
 ---
 
+## No terminal required: the GitHub web editor
+
+Everything in Exercises 3–5 is possible entirely from the browser — no \`git clone\`, no terminal.
+
+| Action | How |
+|---|---|
+| Fork a repo | Click **Fork** on any GitHub repo page |
+| Create a branch | Branch dropdown → type name → **Create branch** |
+| Edit a file | Click the pencil icon on any file |
+| Commit | Scroll to "Commit changes" at the bottom of the editor |
+| Open a PR | Click **Compare & pull request** after pushing |
+| Review a PR | **Files changed** tab → click \`+\` on any line to comment |
+| Merge | Click **Merge pull request** |
+
+Useful for annotators who are new to version control — they can start contributing immediately without any local setup.
+
+---
+
 ## Three actions for annotation workflows
 
 | Action         | Triggered by    | What it does                                        |
@@ -1359,6 +1426,67 @@ token_id  speaker  form    type        jefferson_feats  lemma   upos
 
 ---
 
+## The pivot columns: transcription and token structure
+
+| # | Column | Description |
+|---|--------|-------------|
+| 1 | \`token_id\` | Unique identifier within the conversation — format \`TU_ID-TOKEN_INDEX\` |
+| 2 | \`speaker\` | Speaker code (e.g. \`BO118\`) — matches \`metadata/speakers.tsv\` |
+| 3 | \`tu_id\` | Progressive identifier of the Transcription Unit |
+| 4 | \`form\` | Jefferson transcription of the token, including all diacritics |
+| 5 | \`lemma\` | Orthographic form — special symbols stripped; \`(.)\` → \`[PAUSE]\` |
+| 6 | \`type\` | \`linguistic\` · \`shortpause\` · \`nonverbalbehavior\` · \`unknown\` · \`error\` |
+| 7 | \`jefferson_feats\` | \`Intonation=\` · \`Interrupted=Yes\` · \`Truncated=Yes\` · \`Volume=\` · \`SpaceAfter=No\` |
+| 8 | \`align\` | \`Begin=X.XXX\` / \`End=X.XXX\` in seconds — first/last token of TU only |
+| 9 | \`prolongations\` | Colons encoded as \`<char_idx>x<count>\` — e.g. \`ese::mpio:\` → \`2x2,6x1\` |
+| 10 | \`pace\` | \`Fast=START-END\` or \`Slow=START-END\` (char indices over \`form\`) |
+| 11 | \`guesses\` | Uncertain spans from round brackets — \`START-END\` over \`form\` |
+| 12 | \`overlaps\` | Simultaneous speech — \`START-END(GROUP_ID)\` — char indices over \`form\` |
+
+*Pannitto & Mauri (2025)*
+
+---
+
+## The divergence: a pause that disappears
+
+The pause \`(.)\` in TU 139 is a **first-class token** in the pivot:
+
+\`\`\`
+139-1  BO118  139  (.)  [PAUSE]  shortpause  _  _  _  _  _  _
+\`\`\`
+
+In the CoNLL-U it is **not a token** — UD trees require syntactically analysable nodes, and pauses are not. Instead it is encoded as a feature on the adjacent word:
+
+\`\`\`
+1  sì  sì  ADV  _  _  2  discourse  _  Begin=539.63|PauseAfter=Yes
+\`\`\`
+
+This is a principled decision, not an error. But it means the two files are **not directly comparable line by line**. A reviewer checking consistency must know the mapping rule: \`shortpause\` token in TSV → \`PauseAfter=Yes\` on the preceding token in CoNLL-U.
+
+At scale — thousands of TUs, multiple pause types, overlapping spans — **this mapping cannot be done by eye**.
+
+---
+
+## Conversion scripts are not optional
+
+The pivot↔derived format mappings encode decisions about how phenomena are represented in each target format. Those decisions need to be:
+
+- **Explicit** — written down as code, not tribal knowledge
+- **Reproducible** — running the script twice on the same input gives the same output
+- **Versioned** — the script lives in the repo alongside the data it transforms
+
+\`\`\`
+scripts/
+├── eaf_to_pivot.py       # EAF → pivot (timestamps, overlap markers)
+├── pivot_to_conllu.py    # pivot → CoNLL-U (pause folding, multiword expansion)
+├── pivot_to_vert.py      # pivot → NoSketchEngine vertical
+└── validate_tsv.py       # format correctness checks
+\`\`\`
+
+When a correction is made to the pivot, re-running \`pivot_to_conllu.py\` rebuilds the CoNLL-U with the fix applied — **consistently, automatically, and with no manual patching**. The script is the specification. The Git history of the script is the history of those decisions.
+
+---
+
 ## From EAF to pivot: the curation workflow
 
 \`\`\`
@@ -1503,7 +1631,7 @@ Things we did not cover — threads worth following:
 
 *References*
 
-- Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.
+- [Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.](https://aclanthology.org/2023.findings-acl.495/)
 - de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
 - Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.
 - Dumitru et al. (2024). Version control for speech corpora. *KONVENS*.

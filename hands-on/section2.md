@@ -2,6 +2,33 @@
 
 ---
 
+## Before we start: forming groups
+
+This tutorial has two kinds of prior knowledge in the room — **Git experience** and **Italian**. Groups are mixed deliberately so that each person can contribute what they know and learn what they don't.
+
+**The algorithm (≈ 2 minutes, no materials needed):**
+
+1. Everyone stands up
+2. *"If you have used Git before — even once — move to the left side of the room. If not, stay right."*
+3. *"Now within each half: if you speak Italian, move to the front. Otherwise, the back."*
+   → You now have four quadrants: Git+Italian · Git+other · noGit+Italian · noGit+other
+4. Count heads in each quadrant; divide by target group size (3–4)
+5. Take one person from each quadrant in turn to fill each group
+6. Once in groups, assign roles by counting off: **1 = Manager · 2 = Annotator A · 3 = Annotator B · 4 = Annotator C**
+
+**Role logic:**
+
+| Role | Leverage |
+|---|---|
+| **Manager** | → Git-experienced student: handles workflow, unblocks others |
+| **Annotator C** (CoNLL-U syntax) | → Italian speaker: syntactic judgements require understanding the utterance |
+| **Annotator A** (EAF timestamps) | → anyone: purely technical, no Italian needed |
+| **Annotator B** (pivot TSV, prosody) | → anyone: mechanical task, well-specified in the guidelines |
+
+One rule: the Git-experienced person **explains, does not type**. Others drive the keyboard.
+
+---
+
 ## From the problem to the tool
 
 So: often spoken corpus pipelines suffer from
@@ -556,6 +583,24 @@ Then in the browser:
 - The diff view shows exactly which lines were added or changed
 - Comments are anchored to specific lines and preserved forever
 - After merge, `main` contains your changes and the branch can be deleted
+
+---
+
+## No terminal required: the GitHub web editor
+
+Everything in Exercises 3–5 is possible entirely from the browser — no `git clone`, no terminal.
+
+| Action | How |
+|---|---|
+| Fork a repo | Click **Fork** on any GitHub repo page |
+| Create a branch | Branch dropdown → type name → **Create branch** |
+| Edit a file | Click the pencil icon on any file |
+| Commit | Scroll to "Commit changes" at the bottom of the editor |
+| Open a PR | Click **Compare & pull request** after pushing |
+| Review a PR | **Files changed** tab → click `+` on any line to comment |
+| Merge | Click **Merge pull request** |
+
+Useful for annotators who are new to version control — they can start contributing immediately without any local setup.
 
 ---
 

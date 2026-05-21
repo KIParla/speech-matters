@@ -104,6 +104,67 @@ token_id  speaker  form    type        jefferson_feats  lemma   upos
 
 ---
 
+## The pivot columns: transcription and token structure
+
+| # | Column | Description |
+|---|--------|-------------|
+| 1 | `token_id` | Unique identifier within the conversation — format `TU_ID-TOKEN_INDEX` |
+| 2 | `speaker` | Speaker code (e.g. `BO118`) — matches `metadata/speakers.tsv` |
+| 3 | `tu_id` | Progressive identifier of the Transcription Unit |
+| 4 | `form` | Jefferson transcription of the token, including all diacritics |
+| 5 | `lemma` | Orthographic form — special symbols stripped; `(.)` → `[PAUSE]` |
+| 6 | `type` | `linguistic` · `shortpause` · `nonverbalbehavior` · `unknown` · `error` |
+| 7 | `jefferson_feats` | `Intonation=` · `Interrupted=Yes` · `Truncated=Yes` · `Volume=` · `SpaceAfter=No` |
+| 8 | `align` | `Begin=X.XXX` / `End=X.XXX` in seconds — first/last token of TU only |
+| 9 | `prolongations` | Colons encoded as `<char_idx>x<count>` — e.g. `ese::mpio:` → `2x2,6x1` |
+| 10 | `pace` | `Fast=START-END` or `Slow=START-END` (char indices over `form`) |
+| 11 | `guesses` | Uncertain spans from round brackets — `START-END` over `form` |
+| 12 | `overlaps` | Simultaneous speech — `START-END(GROUP_ID)` — char indices over `form` |
+
+*Pannitto & Mauri (2025)*
+
+---
+
+## The divergence: a pause that disappears
+
+The pause `(.)` in TU 139 is a **first-class token** in the pivot:
+
+```
+139-1  BO118  139  (.)  [PAUSE]  shortpause  _  _  _  _  _  _
+```
+
+In the CoNLL-U it is **not a token** — UD trees require syntactically analysable nodes, and pauses are not. Instead it is encoded as a feature on the adjacent word:
+
+```
+1  sì  sì  ADV  _  _  2  discourse  _  Begin=539.63|PauseAfter=Yes
+```
+
+This is a principled decision, not an error. But it means the two files are **not directly comparable line by line**. A reviewer checking consistency must know the mapping rule: `shortpause` token in TSV → `PauseAfter=Yes` on the preceding token in CoNLL-U.
+
+At scale — thousands of TUs, multiple pause types, overlapping spans — **this mapping cannot be done by eye**.
+
+---
+
+## Conversion scripts are not optional
+
+The pivot↔derived format mappings encode decisions about how phenomena are represented in each target format. Those decisions need to be:
+
+- **Explicit** — written down as code, not tribal knowledge
+- **Reproducible** — running the script twice on the same input gives the same output
+- **Versioned** — the script lives in the repo alongside the data it transforms
+
+```
+scripts/
+├── eaf_to_pivot.py       # EAF → pivot (timestamps, overlap markers)
+├── pivot_to_conllu.py    # pivot → CoNLL-U (pause folding, multiword expansion)
+├── pivot_to_vert.py      # pivot → NoSketchEngine vertical
+└── validate_tsv.py       # format correctness checks
+```
+
+When a correction is made to the pivot, re-running `pivot_to_conllu.py` rebuilds the CoNLL-U with the fix applied — **consistently, automatically, and with no manual patching**. The script is the specification. The Git history of the script is the history of those decisions.
+
+---
+
 ## From EAF to pivot: the curation workflow
 
 ```
@@ -248,7 +309,7 @@ Things we did not cover — threads worth following:
 
 *References*
 
-- Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.
+- [Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.](https://aclanthology.org/2023.findings-acl.495/)
 - de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
 - Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.
 - Dumitru et al. (2024). Version control for speech corpora. *KONVENS*.
