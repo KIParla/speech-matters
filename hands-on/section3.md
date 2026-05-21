@@ -162,22 +162,56 @@ The EAF files can be kept in the repo too — in `eaf/` — for reference and re
 With Git, the corpus history is itself a research artefact.
 
 ```bash
-# In the my-corpus repo you created in the exercises:
-
-# Who touched pivot/BOA1010.tsv and when?
-git log --oneline -- pivot/BOA1010.tsv
+# Who touched the pivot TSV and when?
+git log --oneline -- pivot/BOD2018.tsv
+# 18b5167 fix two errors in pivot TSV
+# 357d17b Initial commit: BOD2018 exercise stubs (TU 138–145)
 
 # What exactly changed in the last commit to that file?
-git show HEAD -- pivot/BOA1010.tsv
+git show 18b5167 -- pivot/BOD2018.tsv
 
-# How did the file look before your latest edit?
-git show HEAD~1:pivot/BOA1010.tsv
+# When was the POS for 'si' corrected — and why?
+git log -S "INTJ" --oneline -- conllu/BOD2018.conllu
+# 5c78119 fix POS for si and quindi per KIParla spoken Italian guidelines
 
-# What is different between your branch and main?
-git diff main..annotator/BOA1010 -- pivot/BOA1010.tsv
+# How did the CoNLL-U file look before that fix?
+git show 5c78119~1:conllu/BOD2018.conllu
 ```
 
-→ The commit history **is** the documentation of curatorial decisions. It replaces — and surpasses — manual changelogs.
+Any annotation decision is recoverable: who made it, when, and why.
+
+---
+
+## Documentation grounded in the data
+
+A persistent problem in corpus linguistics: documentation claims drift from the actual data.
+
+> "Overlap is encoded with square brackets" — but is it, in every file, in every version?
+
+With Git, documentation can be **derived from and verified against** the history:
+
+```bash
+# Auto-generate a dated changelog from commit messages
+git log --format="%ad  %s" --date=short -- pivot/
+# 2026-05-21  fix two errors in pivot TSV
+# 2026-05-21  remove Clitic=Yes from CoNLL-U misc fields
+# 2026-05-21  add speaker and conversation metadata for BOD2018
+# 2026-05-21  Initial commit: BOD2018 exercise stubs (TU 138–145)
+
+# Who contributed what — for an Acknowledgements section
+git shortlog -sn
+#     12  Maria Rossi
+#      7  Giulio Bianchi
+#      3  ellepannitto
+
+# Trace every line of a file back to the commit that introduced it
+git blame pivot/BOD2018.tsv
+```
+
+A release's README does not need to say "we fixed X in version 1.1" as a free-text claim — it can link to the commit that proves it.
+
+→ The changelog **is** the commit log. The attribution **is** the author list.
+Documentation that cannot be falsified by `git log` is not documentation.
 
 ---
 
@@ -198,13 +232,35 @@ On GitHub, a tag automatically creates a **Release** with:
 
 → Every corpus version is **citable**, **reproducible**, and **comparable** with previous ones.
 
+## Open questions and next steps
+
+Things we did not cover — threads worth following:
+
+- **Parallel annotation:** two annotators on the same file → branching model for disagreement → inter-annotator agreement computed from PR diffs
+- **Integration with annotation tools:**
+- **Incremental releases:** `git tag v1.0.0` + Zenodo webhook → automatic DOI on every tag
+
+> "By embracing version control practices and technologies, we can foster more rigorous, collaborative, and sustainable approaches to linguistic annotation."
+>
+> — Waldon & Schneider (2025)
+
 ---
 
 *References*
 
+- Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.
+- de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
+- Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.
+- Dumitru et al. (2024). Version control for speech corpora. *KONVENS*.
+- Lehmann, C. (2004). Data in linguistics. *The Linguistic Review*.
+- Linell, P. (2019). The written language bias 40 years after. *Language Sciences*.
+- Mauri et al. (2019). KIParla corpus: a new resource for spoken Italian. *CLiC-it*.
+- Palmer, M. & Xue, N. (2010). Linguistic annotation. Chapter 10.
 - Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *CLARIN*.
 - Pannitto et al. (2025). Introducing KIParla Forest. *DepLing / SyntaxFest*.
-- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
 - Rosenberg, A. (2012). Rethinking the corpus: moving towards dynamic linguistic resources. *Interspeech*.
-- Dumitru et al. (2024). Version control for speech corpora. *KONVENS*.
+- San, N. (2016). Using version control for a reproducible workflow in acoustic phonetics. *SST2016*.
+- Software Carpentry (2024). *Version Control with Git*. The Carpentries. https://swcarpentry.github.io/git-novice/
+- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
 - Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.
+- Zeman, D., Savary, A. & Guillaume, B. (2024). Git Infrastructure. *UniDive Training School*, Chișinău.

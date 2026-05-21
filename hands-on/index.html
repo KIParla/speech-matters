@@ -66,7 +66,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 .slide pre{background:var(--code-bg);border:0.5px solid var(--border);border-left:3px solid var(--accent2);border-radius:6px;padding:18px 22px;margin:0 0 18px;overflow-x:auto;max-width:860px;flex-shrink:0}
 .slide pre code{font-family:var(--font-mono);font-size:clamp(10px,1vw,13px);line-height:1.65;color:#a8c4cc}
 .slide code:not(pre code){font-family:var(--font-mono);font-size:.87em;background:var(--code-bg);border:0.5px solid var(--border);padding:1px 5px;border-radius:3px;color:var(--accent2)}
-.slide img{max-width:100%;max-height:45vh;height:auto;display:block;margin:0 auto 18px;border-radius:4px;border:0.5px solid var(--border)}
+.slide img{max-width:100%;max-height:65vh;height:auto;display:block;margin:0 auto 18px;border-radius:4px;border:0.5px solid var(--border);cursor:zoom-in}
+#lightbox{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.88);align-items:center;justify-content:center;cursor:zoom-out}
+#lightbox.open{display:flex}
+#lightbox img{max-width:92vw;max-height:92vh;border-radius:6px;border:0.5px solid var(--border);box-shadow:0 8px 48px rgba(0,0,0,.7)}
 .slide table{border-collapse:collapse;width:100%;max-width:860px;margin-bottom:18px;font-size:clamp(11px,1.2vw,14px)}
 .slide th{background:var(--code-bg);color:var(--accent);font-weight:500;font-family:var(--font-mono);font-size:.84em;letter-spacing:.04em;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border)}
 .slide td{padding:8px 13px;border-bottom:0.5px solid var(--border);color:var(--text);vertical-align:top}
@@ -87,6 +90,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 .slide::-webkit-scrollbar{width:3px}
 .slide::-webkit-scrollbar-track{background:transparent}
 .slide::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.slide-home{background:var(--surface);justify-content:center}
+.slide-home .home-title{font-family:var(--font-head);font-size:clamp(22px,2.8vw,40px);font-weight:400;color:var(--text);line-height:1.25;max-width:820px;margin-bottom:16px}
+.slide-home .home-rule{width:56px;height:2px;background:var(--accent);margin:20px 0 32px}
+.slide-home .home-chapters{list-style:none;padding:0;margin:0;max-width:820px}
+.slide-home .home-chapters li{display:flex;align-items:baseline;gap:16px;padding:10px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:color .15s}
+.slide-home .home-chapters li:last-child{border-bottom:none}
+.slide-home .home-chapters li:hover .home-ch-title{color:var(--accent)}
+.slide-home .home-ch-num{font-family:var(--font-mono);font-size:11px;color:var(--accent);letter-spacing:.1em;flex-shrink:0;width:40px}
+.slide-home .home-ch-title{font-size:clamp(14px,1.5vw,18px);color:var(--text);font-weight:300}
 
 </style>
 </head>
@@ -101,13 +113,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
   </div>
 </div>
 
+<div id="lightbox"><img id="lightbox-img" src="" alt=""/></div>
+
 <div id="stage">
   <div id="loading">Loading slides…</div>
 </div>
 
 <div id="navbar">
   <button class="nav-btn" id="btn-prev" disabled>← prev</button>
-  <span id="kbd-hint">← → arrow keys &nbsp;·&nbsp; 1–4 switch section &nbsp;·&nbsp; F fullscreen</span>
+  <span id="kbd-hint">← → arrow keys &nbsp;·&nbsp; 1–3 switch section &nbsp;·&nbsp; F fullscreen</span>
   <button class="nav-btn" id="btn-next" disabled>next →</button>
 </div>
 
@@ -124,26 +138,25 @@ const SECTIONS = [
   {
     "file": "section1.md",
     "label": "1 · Git as a Collaborative Envir…",
-    "chip": "Part 1 · Git as a Collaborative Environment for Multilayer Spoken Resource Development"
+    "chip": "Part 1 · Git as a Collaborative Environment for Multilayer Spoken Resource Development",
+    "h1": "Git as a Collaborative Environment for Multilayer Spoken Resource Development"
   },
   {
     "file": "section2.md",
     "label": "2 · Git & GitHub: core concepts",
-    "chip": "Part 2 · Git & GitHub: core concepts"
+    "chip": "Part 2 · Git & GitHub: core concepts",
+    "h1": "Git & GitHub: core concepts"
   },
   {
     "file": "section3.md",
     "label": "3 · The KIParla pivot format",
-    "chip": "Part 3 · The KIParla pivot format"
-  },
-  {
-    "file": "section4.md",
-    "label": "4 · Hands-on: building the workf…",
-    "chip": "Part 4 · Hands-on: building the workflow"
+    "chip": "Part 3 · The KIParla pivot format",
+    "h1": "The KIParla pivot format"
   }
 ];
+const HOME_TITLE = "Speech Matters Spring School";
 
-let currentSection = 0, currentSlide = 0;
+let currentSection = -1, currentSlide = 0;
 let sections = [];
 
 function parseSlides(md){return md.split(/\n---\n/).map(s=>s.trim()).filter(Boolean);}
@@ -175,6 +188,26 @@ function buildSlide(raw,idx,si){
   }
   return div;
 }
+function buildHomeSlide(){
+  const div=document.createElement('div');
+  div.className='slide slide-home';
+  div.id='slide-home';
+  const t=document.createElement('h1');
+  t.className='home-title';t.textContent=HOME_TITLE;
+  div.appendChild(t);
+  const rule=document.createElement('div');rule.className='home-rule';div.appendChild(rule);
+  const ul=document.createElement('ul');ul.className='home-chapters';
+  SECTIONS.forEach((sec,i)=>{
+    const li=document.createElement('li');
+    const num=document.createElement('span');num.className='home-ch-num';num.textContent=String(i+1).padStart(2,'0');
+    const title=document.createElement('span');title.className='home-ch-title';title.textContent=sec.h1;
+    li.appendChild(num);li.appendChild(title);
+    li.addEventListener('click',()=>jumpSection(i));
+    ul.appendChild(li);
+  });
+  div.appendChild(ul);
+  return div;
+}
 async function fetchMd(file){
   try{const r=await fetch(file);if(!r.ok)throw 0;return await r.text();}
   catch{return FALLBACKS[file]||`## Coming soon\n\nThis section is not yet available.`;}
@@ -190,14 +223,43 @@ async function loadSection(idx){
     return s;
   });
 }
-function showSlide(si,ii,dir){
+function hideHomeSlide(){
+  const h=document.getElementById('slide-home');
+  if(h){h.classList.remove('active');h.style.display='none';}
+}
+function showHomeSlide(dir){
+  hideCurrentSlide(dir);
+  currentSection=-1;currentSlide=0;
+  const h=document.getElementById('slide-home');
+  h.style.display='';
+  if(dir!==0){
+    h.style.opacity='0';
+    h.style.transform=dir>=0?'translateX(40px)':'translateX(-40px)';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{h.style.opacity='';h.style.transform='';}));
+  }
+  h.classList.add('active');
+  document.getElementById('slide-counter').textContent='— / —';
+  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('btn-prev').disabled=true;
+  document.getElementById('btn-next').disabled=false;
+  document.querySelectorAll('.sec-tab').forEach(t=>t.classList.remove('active'));
+}
+function hideCurrentSlide(dir){
+  if(currentSection===-1){
+    const h=document.getElementById('slide-home');
+    if(h){h.classList.remove('active');h.style.opacity='0';h.style.transform=dir>=0?'translateX(-40px)':'translateX(40px)';
+      setTimeout(()=>{h.style.opacity='';h.style.transform='';h.style.display='none';},300);}
+    return;
+  }
   const cur=sections[currentSection]?.[currentSlide];
   if(cur){
-    cur.classList.remove('active');
-    cur.style.opacity='0';
+    cur.classList.remove('active');cur.style.opacity='0';
     cur.style.transform=dir>=0?'translateX(-40px)':'translateX(40px)';
     setTimeout(()=>{cur.style.opacity='';cur.style.transform='';cur.style.display='none';},300);
   }
+}
+function showSlide(si,ii,dir){
+  hideCurrentSlide(dir);
   currentSection=si;currentSlide=ii;
   const next=sections[si][ii];
   next.style.display='';
@@ -210,20 +272,29 @@ function showSlide(si,ii,dir){
   const total=sections[si].length;
   document.getElementById('slide-counter').textContent=`${ii+1} / ${total}`;
   document.getElementById('progress-fill').style.width=(total>1?(ii/(total-1))*100:100)+'%';
-  document.getElementById('btn-prev').disabled=si===0&&ii===0;
+  document.getElementById('btn-prev').disabled=false;
   document.getElementById('btn-next').disabled=si===SECTIONS.length-1&&ii===total-1;
   document.querySelectorAll('.sec-tab').forEach((t,i)=>t.classList.toggle('active',i===si));
 }
 async function go(delta){
+  if(currentSection===-1){
+    if(delta>0){await loadSection(0);showSlide(0,0,1);}
+    return;
+  }
   let s=currentSection,i=currentSlide+delta;
-  if(i<0){s--;if(s<0)return;await loadSection(s);i=sections[s].length-1;}
-  else if(i>=sections[currentSection].length){s++;if(s>=SECTIONS.length)return;await loadSection(s);i=0;}
+  if(i<0){
+    if(s===0){showHomeSlide(-1);return;}
+    s--;await loadSection(s);i=sections[s].length-1;
+  }else if(i>=sections[currentSection].length){
+    s++;if(s>=SECTIONS.length)return;await loadSection(s);i=0;
+  }
   showSlide(s,i,delta);
 }
 async function jumpSection(idx){
   if(idx===currentSection)return;
   await loadSection(idx);
-  showSlide(idx,0,idx>currentSection?1:-1);
+  const dir=currentSection===-1?1:(idx>currentSection?1:-1);
+  showSlide(idx,0,dir);
 }
 function buildTabs(){
   const nav=document.getElementById('section-tabs');
@@ -238,29 +309,36 @@ document.addEventListener('keydown',e=>{
   if(['ArrowRight','ArrowDown',' '].includes(e.key)){e.preventDefault();go(1);}
   if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(-1);}
   if(e.key==='f'||e.key==='F')document.documentElement.requestFullscreen?.();
+  if(e.key==='0')showHomeSlide(-1);
   if(e.key>='1'&&e.key<='9')jumpSection(parseInt(e.key)-1);
 });
 document.getElementById('btn-next').addEventListener('click',()=>go(1));
 document.getElementById('btn-prev').addEventListener('click',()=>go(-1));
+const lb=document.getElementById('lightbox');
+const lbImg=document.getElementById('lightbox-img');
+document.getElementById('stage').addEventListener('click',e=>{
+  if(e.target.tagName==='IMG'){lbImg.src=e.target.src;lb.classList.add('open');}
+});
+lb.addEventListener('click',()=>{lb.classList.remove('open');lbImg.src='';});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&lb.classList.contains('open')){lb.classList.remove('open');lbImg.src='';}},true);
 let tx=null;
 document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;});
 document.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)go(dx<0?1:-1);tx=null;});
 (async()=>{
   buildTabs();
+  const stage=document.getElementById('stage');
+  const homeEl=buildHomeSlide();
+  homeEl.style.display='none';
+  stage.appendChild(homeEl);
   document.getElementById('loading').remove();
-  await loadSection(0);
-  showSlide(0,0,0);
-  if(SECTIONS.length>1)loadSection(1).catch(()=>{});
+  showHomeSlide(0);
+  loadSection(0).catch(()=>{});
 })();
 
 
 // ── Embedded Markdown content ──
 const FALLBACKS = {
   "section1.md": `# Git as a Collaborative Environment for Multilayer Spoken Resource Development
-
-**Speech Matters Spring School**
-
-Dr. Ludovica Pannitto — Università di Bologna
 
 ---
 
@@ -269,6 +347,18 @@ Dr. Ludovica Pannitto — Università di Bologna
 > "Nothing is, in and of itself, a datum; instead, it is a datum for somebody in some perspective."
 >
 > — Lehmann (2004), *Data in linguistics*
+
+In NLP there is often an unstated assumption about the reality of the datum, spoken data confront us with the fact
+that every bit of information is in fact a stratification of several levels of interpretation
+
+| Research object          | Observable                                      |
+| ------------------------ | ----------------------------------------------- |
+| ultimate substrate       | speech event                                    |
+| epistemic object         | utterance in the speech event                   |
+| original recording       | video/audio tape of the speech event            |
+| derived representation   | transcription and annotation of the utterance   |
+
+*Adapted from Lehmann (2004), "Data in linguistics"*
 
 ---
 
@@ -315,13 +405,6 @@ A large (~2M token) corpus of spontaneous spoken Italian
 
 - Started in **2016**, collaboration between University of Bologna and University of Turin
 - Built around **modularity**: new modules added with compatible metadata and transcription conventions
-- Data collection → archiving → transcription (Jefferson conventions in ELAN) → revision by a single expert linguist → pseudonymization → release
-
-*Mauri et al. (2019) · Pannitto et al. (2025)*
-
----
-
-## The current pipeline
 
 \`\`\`
 fieldwork (many people)
@@ -339,7 +422,10 @@ linearized exports
     └── verticalized .vert           [NoSketchEngine, Sketch Engine]
 \`\`\`
 
+*Mauri et al. (2019) · Pannitto et al. (2025)*
+
 **The deeper problem**: many of the derived formats, tools, and pipelines were not designed with spoken interaction in mind.
+
 They do not model:
 - the **speaker** as a social agent producing situated language
 - the **interactional setting** — who is talking to whom, under what circumstances
@@ -347,18 +433,18 @@ They do not model:
 
 They were built for monological linear text, then retrofitted for spoken language and interaction.
 
-**Problems with the current pipeline**:
-
-- The pipeline is a *one-way street* — upstream corrections do not propagate to downstream layers or exports
-- Validation is *not enforced* — annotation errors only surface when someone notices them, and it's hard to propagate corrections
-- At this scale, and with a growing corpus, consistency *cannot be maintained manually* — automatic pipelines are needed
-- Each undocumented shortcut, implicit modeling choice, and ad hoc format migration accumulates as **technical and conceptual debt** — making future transformations, collaboration, and reuse increasingly fragile
-
 ---
 
 ## From pipeline to pivot
 
-The linear model treats ELAN as the authoritative source. Every derived format is a dead end — a correction to the source does not reach the outputs, and there is no path back.
+**Problems with the current pipeline**:
+
+- The pipeline is a *one-way street* — it works like a cascade from transcription to downstream layers. When you work downstream, it's hard to swim upstream
+- Validation is *not enforced* — annotation errors only surface when someone notices them, and it's hard to propagate corrections
+- At this scale, and with a growing corpus, consistency *cannot be maintained manually* — automatic pipelines are needed
+- Each undocumented shortcut, implicit modeling choice, and ad hoc format migration accumulates as **technical and conceptual debt** — making future transformations, collaboration, and reuse increasingly fragile
+
+The linear model treats **ELAN** as the authoritative source. Every derived format is a dead end.
 
 We argue for the introduction of a **pivot model**, which replaces the pipeline with a single maintained representation at the centre:
 
@@ -366,7 +452,7 @@ We argue for the introduction of a **pivot model**, which replaces the pipeline 
 
 In the case of KIParla, the pivot is a **verticalized, pseudo-tokenized TSV** — one token per row, enriched with lexical, prosodic, interactional, and alignment features. From it, all formats are reproducibly derived by conversion scripts.
 
-Crucially, the architecture is **bidirectional**: corrections applied at the pivot level propagate to all derived formats and vice versa, without breaking annotation on the rest of the resource.
+Crucially, the architecture is **bidirectional**: corrections applied at the pivot level propagate to all derived formats and vice versa (to some extent), without breaking annotation on the rest of the resource.
 
 For this to work, the pivot format must satisfy four requirements:
 
@@ -414,29 +500,15 @@ In the .eaf XML, they live **3000+ lines apart**:
 \`\`\`
 
 - Temporal overlap is **not encoded** — only recoverable by cross-referencing \`ts\` IDs
-- Jefferson notation is **mangled** by XML escaping (\`>\` → \`&gt;\`)
+- Different levels are mixed: it's not easy to decouple Jefferson notation from transcription
 - Additional annotation layers are **external or tool-dependent**
 - No path to add morphosyntax, prosody, or speech acts without breaking the format
 
 ---
 
-## What goes wrong with widely adopted pipelines
-
-| Problem                       | Consequence                                                                                   |
-| ----------------------------- | --------------------------------------------------------------------------------------------- |
-| Opaqueness                    | Cannot retrace annotation decisions                                                           |
-| Non-reversible edits          | Ad-hoc choices crystallize permanently                                                        |
-| Single expert bottleneck      | Knowledge locked in one person; infrastructure becomes unintelligible to the rest of the team |
-| No adjudication trail         | Inter-annotator disagreement invisible                                                        |
-| Static releases               | Errors cannot be corrected incrementally                                                      |
-| Undocumented format migration | Each conversion introduces silent distortions of meaning                                      |
-| Technical and conceptual debt | Earlier shortcuts constrain every future transformation                                       |
-
----
-
 ## The invisible cost of infrastructure
 
-> Digital Humanities projects often struggle not because of analytical complexity,
+> Language Resources projects often struggle not because of analytical complexity,
 > but because of **fragile data workflows**, undocumented transformations,
 > and ad hoc collaboration practices.
 
@@ -494,13 +566,16 @@ each optimised for a specific stage of the data lifecycle.
 
 New data are added · Errors are corrected · Formats evolve · New reuse scenarios emerge
 
-→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself — and software engineering already has mature tools for exactly this. We do not need to reinvent the wheel.
+→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself — and software engineering already has mature tools for exactly this.
 
 ---
 
 ## The DevOps analogy
 
-**DevOps** (**Dev**elopment + **Op**erations) is a set of practices from software engineering that breaks down the traditional wall between the people who *write* code and the people who *deploy and maintain* it. The combined workflow treats development as a *continuous, collaborative, and automated* process — rather than a sequence of isolated handoffs. Its core idea: every change is tracked, every build is reproducible, and quality is enforced automatically before anything reaches production.
+**DevOps** (**Dev**elopment + **Op**erations) is a set of practices from software engineering that breaks down the traditional wall between the people who *write* code and the people who *deploy and maintain* it.
+The combined workflow treats development as a *continuous, collaborative, and automated* process — rather than a sequence of isolated handoffs.
+
+> every change is tracked, every build is reproducible, and quality is enforced automatically before anything reaches production.
 
 | Software development | Corpus development                     |
 | -------------------- | -------------------------------------- |
@@ -527,19 +602,6 @@ Those tools are:
 
 We do not need to build new infrastructure. We need to apply existing infrastructure to a new domain.
 
----
-
-*References*
-
-- Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.
-- Pannitto, L. (submitted). Data Plumbing Toolkit: managing the invisible infrastructure of DH work. *European Summer University in Digital Humanities* workshop proposal.
-- Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.
-- Lehmann, C. (2004). Data in linguistics. *The Linguistic Review*.
-- Linell, P. (2019). The written language bias 40 years after. *Language Sciences*.
-- Mauri et al. (2019). KIParla corpus: a new resource for spoken Italian. *CLiC-it*.
-- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *forthcoming*.
-- Pannitto et al. (2025). Introducing KIParla forest. *DepLing / SyntaxFest*.
-- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
 `,
   "section2.md": `# Git & GitHub: core concepts
 
@@ -569,10 +631,8 @@ BOA1010_FINAL_USE_THIS_ONE_v2_corrected_LP.eaf
 
 - Which is the authoritative version?
 - Who made the \`_corrected\` changes, and why?
-- Do you know exactly what changed from previous version to the last?
+- Do you know exactly what changed from \`BOA1010_FINAL_USE_THIS_ONE.eaf\` to \`BOA1010_FINAL_USE_THIS_ONE_v2_corrected.eaf\`?
 - What happens when two annotators work on different copies?
-
-This is the default state of most annotation projects without version control.
 
 *Software Carpentry (2024)*
 
@@ -788,6 +848,41 @@ git diff README.md
 
 ---
 
+## How a diff summarizes what changed
+
+In Exercise 2 you ran:
+
+\`\`\`bash
+echo "Spontaneous spoken Italian corpus" >> README.md
+git diff README.md
+\`\`\`
+
+Your README started as a single line:
+
+\`\`\`
+# My corpus
+\`\`\`
+
+After the \`echo\` command it has a second line:
+
+\`\`\`
+# My corpus
+Spontaneous spoken Italian corpus
+\`\`\`
+
+\`git diff README.md\` collapses that to:
+
+\`\`\`diff
+@@ -1 +1,2 @@
+ # My corpus
++Spontaneous spoken Italian corpus
+\`\`\`
+
+Lines with \`+\` were added. Unchanged context lines (no prefix) anchor the change in the file.
+The \`@@\` header tells you the line numbers: the old file had 1 line starting at line 1; the new version has 2 lines.
+
+---
+
 ## The four states of a file
 
 Every file in a Git repository is in one of four states:
@@ -843,50 +938,61 @@ Each commit has:
 
 ## What a diff looks like
 
-\`\`\`diff
-# sent_id = BOA1010-003
-# text = e quindi studi: pittura?
+From \`speech-matters-demo\`: an annotator fills in the missing dependency head and relation for token 19 (\`sì\`) in sentence \`BOD2018_138_139\`.
 
--1  e      _    _    _    _  0  root  _  _
--2  quindi _    _    _    _  0  root  _  _
-+1  e      e    CCONJ _   _  3  cc    _  _
-+2  quindi quindi ADV _   _  3  advmod _  _
- 3  studi  studiare VERB _  _  0  root  _  _
+\`\`\`diff
+ 18  più   più   ADV   _  _  20  advmod    _  KID=138-17|Prolonged=Yes
+-19  sì    sì    ADV   _  _  _   _         _  Clitic=Yes|KID=138-18
++19  sì    sì    ADV   _  _  20  discourse _  Clitic=Yes|KID=138-18
+ 20  anni  anno  NOUN  _  _  0   root      _  KID=138-19
 \`\`\`
 
-Lines prefixed \`-\` were removed · lines prefixed \`+\` were added
+Column 7 is the head token; column 8 is the syntactic relation.
+The commit message explains *why*: \`"sì at 138-18 is a discourse marker attached to root anni (20)"\`.
 
-→ The diff is a **human-readable record of every annotation decision**
+→ The diff + message together are a **permanent, auditable annotation decision**
 
 ---
 
-## Exercise 3 — Browse the history
+## Exercise 3 — Fork, clone, and explore a richer history
+
+This exercise uses **speech-matters-demo**, a pre-built repository with several commits already in it.
+
+**Step 1 — Fork and clone**
+
+1. Go to \`github.com/ellepannitto/speech-matters-demo\`
+2. Click **Fork** (top-right) — this creates your own copy on GitHub
+3. Clone your fork to your machine:
 
 \`\`\`bash
-# 1. Make two more small commits (add files, edit README, anything)
-echo "speaker_id,age,gender" > metadata/speakers.tsv
-git add metadata/speakers.tsv
-git commit -m "Add speakers metadata stub"
+git clone https://github.com/<your-username>/speech-matters-demo.git
+cd speech-matters-demo
+\`\`\`
 
-# 2. View the full log
+**Step 2 — Inspect the history**
+
+\`\`\`bash
+# 1. View the full commit history
 git log --oneline
 
-# 3. See exactly what changed in a specific commit (use your own hash)
-git show a3f9c12
+# 2. See exactly what changed in a specific commit
+#    (use the hash of "add speaker and conversation metadata for BOD2018")
+git show <hash>
 
-# 4. Go back and look at a past state — without changing anything
-git checkout HEAD~1 -- README.md   # restore previous version of one file
-git diff README.md                 # see what was different
-git checkout HEAD -- README.md     # put the current version back
+# 3. Travel back to an earlier state of the whole repository
+git checkout <earlier-hash>    # HEAD is now "detached"
+ls                             # the working directory reflects that past state
 
-# 5. Check that you're back to normal
-git status
+# 4. Come back to the present
+git checkout main
+git status                     # should be clean
 \`\`\`
 
 **What to observe:**
-- \`git show <hash>\` displays the full diff for any past commit
-- \`git checkout <commit> -- <file>\` lets you inspect a past version without rewriting history
-- You can always get back: Git does not forget anything
+- \`git log --oneline\` gives you a compact timeline of every decision in the project
+- \`git show <hash>\` displays the full diff for any past commit — message, author, and changed lines
+- \`git checkout <hash>\` moves the entire working directory to that past state ("detached HEAD")
+- \`git checkout main\` brings you back — Git does not forget anything
 
 ---
 
@@ -1110,7 +1216,6 @@ UD uses GitHub for:
 
 > \`github.com/UniversalDependencies\` — 200+ repositories, thousands of contributors
 
-
 ---
 
 ## Monitoring the project: Issues and permalinks
@@ -1147,30 +1252,6 @@ Annotators unfamiliar with Git face a real barrier. Mitigation strategies:
 > The goal is not to turn linguists into software engineers.
 > The goal is to give annotation projects **the same reliability guarantees** that software projects have.
 
----
-
-## Part 2 — Summary
-
-- A **repository** stores all files and their complete history
-- A **commit** is a timestamped, labelled snapshot — the annotation justification
-- A **branch** lets annotators work safely in parallel
-- A **pull request** is the adjudication interface — discussion, review, merge
-- **Actions** automate validation, visualization, and statistics
-- **Issues and permalinks** make the project auditable — every decision has a thread, every thread points to a line
-- The workflow is already proven at scale in Universal Dependencies
-- **Part 3** will re-examine these concepts in the specific context of spoken corpus data: binary audio, GDPR, multilayer formats, and the pivot architecture
-
----
-
-*References*
-
-- de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
-- Software Carpentry (2024). *Version Control with Git*. The Carpentries. https://swcarpentry.github.io/git-novice/
-- Zeman, D., Savary, A. & Guillaume, B. (2024). Git Infrastructure. *UniDive Training School*, Chișinău.
-- Palmer, M. & Xue, N. (2010). Linguistic annotation. Chapter 10.
-- San, N. (2016). Using version control for a reproducible workflow in acoustic phonetics. *SST2016*.
-- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
-- Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.
 `,
   "section3.md": `# The KIParla pivot format
 
@@ -1336,22 +1417,56 @@ The EAF files can be kept in the repo too — in \`eaf/\` — for reference and 
 With Git, the corpus history is itself a research artefact.
 
 \`\`\`bash
-# In the my-corpus repo you created in the exercises:
-
-# Who touched pivot/BOA1010.tsv and when?
-git log --oneline -- pivot/BOA1010.tsv
+# Who touched the pivot TSV and when?
+git log --oneline -- pivot/BOD2018.tsv
+# 18b5167 fix two errors in pivot TSV
+# 357d17b Initial commit: BOD2018 exercise stubs (TU 138–145)
 
 # What exactly changed in the last commit to that file?
-git show HEAD -- pivot/BOA1010.tsv
+git show 18b5167 -- pivot/BOD2018.tsv
 
-# How did the file look before your latest edit?
-git show HEAD~1:pivot/BOA1010.tsv
+# When was the POS for 'si' corrected — and why?
+git log -S "INTJ" --oneline -- conllu/BOD2018.conllu
+# 5c78119 fix POS for si and quindi per KIParla spoken Italian guidelines
 
-# What is different between your branch and main?
-git diff main..annotator/BOA1010 -- pivot/BOA1010.tsv
+# How did the CoNLL-U file look before that fix?
+git show 5c78119~1:conllu/BOD2018.conllu
 \`\`\`
 
-→ The commit history **is** the documentation of curatorial decisions. It replaces — and surpasses — manual changelogs.
+Any annotation decision is recoverable: who made it, when, and why.
+
+---
+
+## Documentation grounded in the data
+
+A persistent problem in corpus linguistics: documentation claims drift from the actual data.
+
+> "Overlap is encoded with square brackets" — but is it, in every file, in every version?
+
+With Git, documentation can be **derived from and verified against** the history:
+
+\`\`\`bash
+# Auto-generate a dated changelog from commit messages
+git log --format="%ad  %s" --date=short -- pivot/
+# 2026-05-21  fix two errors in pivot TSV
+# 2026-05-21  remove Clitic=Yes from CoNLL-U misc fields
+# 2026-05-21  add speaker and conversation metadata for BOD2018
+# 2026-05-21  Initial commit: BOD2018 exercise stubs (TU 138–145)
+
+# Who contributed what — for an Acknowledgements section
+git shortlog -sn
+#     12  Maria Rossi
+#      7  Giulio Bianchi
+#      3  ellepannitto
+
+# Trace every line of a file back to the commit that introduced it
+git blame pivot/BOD2018.tsv
+\`\`\`
+
+A release's README does not need to say "we fixed X in version 1.1" as a free-text claim — it can link to the commit that proves it.
+
+→ The changelog **is** the commit log. The attribution **is** the author list.
+Documentation that cannot be falsified by \`git log\` is not documentation.
 
 ---
 
@@ -1372,428 +1487,6 @@ On GitHub, a tag automatically creates a **Release** with:
 
 → Every corpus version is **citable**, **reproducible**, and **comparable** with previous ones.
 
----
-
-*References*
-
-- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *CLARIN*.
-- Pannitto et al. (2025). Introducing KIParla Forest. *DepLing / SyntaxFest*.
-- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
-- Rosenberg, A. (2012). Rethinking the corpus: moving towards dynamic linguistic resources. *Interspeech*.
-- Dumitru et al. (2024). Version control for speech corpora. *KONVENS*.
-- Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.
-`,
-  "section4.md": `# Hands-on: building the workflow
-
----
-
-## What we will build today
-
-A shared repository for a real excerpt from **BOD2018**, a KIParla recording. Three contributors work simultaneously on different representations of the same data:
-
-\`\`\`
-git-bod2018-demo/
-├── eaf/
-│   └── BOD2018.eaf            ← Annotator A: ELAN transcription
-├── pivot/
-│   └── BOD2018.tsv            ← Annotator B: pivot TSV (prosody, overlaps)
-├── conllu/
-│   └── BOD2018.conllu         ← Annotator C: UD syntactic annotation
-├── scripts/
-│   ├── validate_tsv.py
-│   └── eaf_to_pivot.py
-├── .github/workflows/
-│   └── validate.yml
-└── README.md
-\`\`\`
-
-The goal: merge all three contributions back into a consistent pivot.
-
----
-
-## The data: BOD2018, TU 138–140
-
-A short exchange between BO118 (interviewer) and BO140 (participant). TU 138 ends, TU 139 and 140 overlap.
-
-**What you hear** (Jefferson notation):
-
-\`\`\`
-BO140 (TU 138): ...zona irnerio così sono più sì anni cinquanta credo.
-BO118 (TU 139): [sì] (.) penso di sì.
-BO140 (TU 140): [non lo so].
-\`\`\`
-
-\`[…]\` marks overlap onset/offset. \`(.)\` is a short pause.
-
-**Three representations of the same three TUs** — each maintained by a different contributor, each seeing only part of the picture.
-
----
-
-## The three files side by side
-
-**Pivot TSV** (Annotator B):
-
-\`\`\`
-token_id  speaker  tu_id  form    lemma    type        prosody           align          overlaps
-139-0     BO118    139    [sì]    sì       linguistic  _                 Begin=539.63   0-2(23)
-139-1     BO118    139    (.)     [PAUSE]  shortpause  _                 _              _
-139-2     BO118    139    penso   penso    linguistic  _                 _              _
-139-3     BO118    139    di      di       linguistic  _                 _              _
-139-4     BO118    139    sì.     sì       linguistic  Intonation=Fall   End=540.78     _
-140-0     BO140    140    [non    non      linguistic  _                 Begin=539.63   0-3(23)
-140-1     BO140    140    lo      lo       linguistic  _                 _              0-2(23)
-140-2     BO140    140    so].    so       linguistic  Intonation=Fall   End=540.26     0-2(23)
-\`\`\`
-
-**CoNLL-U** (Annotator C):
-
-\`\`\`
-# sent_id = BOD2018_140
-# text = sì penso di sì
-# jefferson_text = [sì] (.) penso di sì.
-# speaker_id = BO118
-1  sì     sì       ADV   _  _                       2  discourse  _  Begin=539.63|PauseAfter=Yes
-2  penso  pensare  VERB  _  Mood=Ind|Person=1|...   0  root       _  _
-3  di     di       ADP   _  _                       4  case       _  _
-4  sì     sì       ADV   _  _                       2  advmod     _  End=540.78|Intonation=Falling
-\`\`\`
-
----
-
-## The divergence: the pause that disappeared
-
-The pause \`(.)\` in TU 139 is a **first-class token** in the pivot:
-
-\`\`\`
-139-1  BO118  139  (.)  [PAUSE]  shortpause  _  _  _
-\`\`\`
-
-In the CoNLL-U it is **not a token** — it is encoded as a feature on the preceding word:
-
-\`\`\`
-1  sì  sì  ADV  _  _  2  discourse  _  Begin=539.63|PauseAfter=Yes
-\`\`\`
-
-This is a principled decision: UD trees require every node to be a syntactically analysable unit, and pauses are not. But it means the two files are **not directly comparable line by line**.
-
-When Annotator B and Annotator C open a PR, the manager must:
-1. Verify that \`PauseAfter=Yes\` on token 1 correctly reflects \`139-1\` in the TSV
-2. Ensure no information was lost in the conversion
-3. Record the decision in the merge commit message
-
-Git makes this traceable. Without it, the divergence would be invisible.
-
----
-
-## The pivot TSV format: columns 1–6
-
-Each token is one row. The 12 columns are:
-
-| # | Column | Description |
-|---|--------|-------------|
-| 1 | \`token_id\` | Unique token identifier within the conversation — format \`TU_ID-TOKEN_INDEX\` |
-| 2 | \`speaker\` | Speaker code (e.g. \`BO118\`) — matches \`metadata/participants.tsv\` |
-| 3 | \`tu_id\` | Progressive identifier of the Transcription Unit |
-| 4 | \`span\` | Original Jefferson transcription of the token, including all diacritics |
-| 5 | \`form\` | Orthographic form — special symbols stripped; \`(.)\` → \`[PAUSE]\`; unintelligible → \`x\` |
-| 6 | \`type\` | \`linguistic\` · \`shortpause\` · \`nonverbalbehavior\` · \`unknown\` · \`error\` |
-
-Tokenization splits on whitespace, prosodic links (\`=\`), and Italian elision apostrophes.
-
----
-
-## The pivot TSV format: columns 7–12
-
-| # | Column | Description |
-|---|--------|-------------|
-| 7 | \`jefferson_feats\` | \`SpaceAfter=No\` · \`ProsodicLink=Yes\` · \`Intonation=Falling/Rising/WeaklyRising\` · \`Interrupted=Yes\` · \`Truncated=Yes\` · \`Volume=High/Low\` |
-| 8 | \`align\` | \`Begin=X.XXX\` and/or \`End=X.XXX\` in seconds — only on first/last token of TU |
-| 9 | \`prolongations\` | Colons encoded as \`<char_idx>x<count>\` — e.g. \`ese::mpio:\` → \`2x2,6x1\` |
-| 10 | \`pace\` | \`Fast=START-END\` or \`Slow=START-END\` (zero-based char indices over \`form\`) |
-| 11 | \`guesses\` | Uncertain spans from round brackets — \`START-END\` over \`form\` |
-| 12 | \`overlaps\` | Simultaneous speech — \`START-END(GROUP_ID)\` — char indices over \`form\` |
-
-*Pannitto & Mauri (2025) · KIParla tools: github.com/LaboratorioSperimentale/kiparla-tools*
-
----
-
-## Step 0: prerequisites
-
-Before we start, make sure you have:
-
-- A **GitHub account** (free — \`github.com/signup\`)
-- **Git** installed locally (\`git --version\`)
-- A text editor that shows TSV files cleanly (VS Code recommended)
-
-**Alternative: no local setup needed.**
-GitHub's web editor lets you edit and commit files directly from the browser. We will use this path as the primary route today.
-
-\`\`\`bash
-# Optional: verify local git
-git --version          # should print git version 2.x.x
-git config --global user.name  "Your Name"
-git config --global user.email "you@example.com"
-\`\`\`
-
----
-
-## Step 1 (manager): fork and inspect the repo
-
-1. Go to the shared \`git-bod2018-demo\` repository
-2. Click **Fork** → creates your own copy
-3. Explore the structure:
-   - \`pivot/BOD2018.tsv\` — the authoritative TSV (TU 138–140, partially annotated)
-   - \`conllu/BOD2018.conllu\` — the UD annotation (sent_id BOD2018_140 has gaps)
-   - \`eaf/BOD2018.eaf\` — the ELAN source (alignment timestamps to verify)
-   - \`scripts/validate_tsv.py\` — checks schema, delimiter balance, TU coherence
-
-**Assign roles** (one per group of three):
-- **Annotator A** → works on \`eaf/BOD2018.eaf\`: verify and correct alignment timestamps
-- **Annotator B** → works on \`pivot/BOD2018.tsv\`: add missing prosodic features
-- **Annotator C** → works on \`conllu/BOD2018.conllu\`: complete the UD annotation for TU 138
-
----
-
-## Step 2 (annotator): create a working branch
-
-### From the browser (recommended)
-
-1. On the repo page, click the branch dropdown (shows \`main\`)
-2. Type \`annotator/BOA1010\` → click **Create branch**
-3. You are now on your working branch — \`main\` is untouched
-
-### From the command line
-
-\`\`\`bash
-git clone https://github.com/your-username/git-spoken-corpus-demo
-cd git-spoken-corpus-demo
-git checkout -b annotator/BOA1010
-\`\`\`
-
----
-
-## Step 3 (annotator): make your edit
-
-Each annotator works on their assigned file:
-
-**Annotator A** — \`eaf/BOD2018.eaf\`: check that \`Begin=539.63\` on TU 139 and \`Begin=539.63\` on TU 140 are both present and consistent with the overlap marker \`0-2(23)\` / \`0-3(23)\` in the TSV.
-
-**Annotator B** — \`pivot/BOD2018.tsv\`: the \`prosody\` column on tokens \`138-6\` (\`da::\`) and \`138-17\` (\`più::\`) is \`_\` but prolongations are visible. Add the correct values:
-
-\`\`\`
-138-6   BO140  138  da::    da    linguistic  _  _  1x2  _  _  _
-\`\`\`
-
-→ change \`_\` in the prolongations column to \`1x2\`.
-
-**Annotator C** — \`conllu/BOD2018.conllu\`: \`sent_id = BOD2018_138_139\` is missing the deprel for token 19 (\`sì\`). It should be \`discourse\`, head \`20\`. Add it.
-
-**Important for all:** the pause token \`139-1 (.) [PAUSE] shortpause\` is in the TSV. Do not add it to the CoNLL-U — record it via \`PauseAfter=Yes\` on token 1 of \`BOD2018_140\` instead. This is the expected format divergence.
-
----
-
-## Step 4 (annotator): commit with a meaningful message
-
-Write a message that documents the decision, not just the change:
-
-**Annotator B example:**
-\`\`\`
-Add prolongation features to TU 138 tokens 138-6 and 138-17
-
-138-6 (da::): 1 prolonged syllable, 2 extra.
-138-17 (più::): 2 prolonged syllables, 2 extra each.
-Values follow KIParla prolongation encoding (NxM = N syllables, M extra).
-\`\`\`
-
-**Annotator C example:**
-\`\`\`
-Fix missing deprel for token 19 (sì) in BOD2018_138_139
-
-Was: _ (empty). Should be: discourse, head=20 (anni).
-Consistent with treatment of discourse sì in BOD2018_2 and BOD2018_6_7_9_10.
-Note: pause (139-1) is not tokenised here — encoded as PauseAfter=Yes on
-BOD2018_140 token 1 per KIParla Forest convention.
-\`\`\`
-
-The GitHub Action fires immediately after commit — check the **Actions** tab.
-
----
-
-## Step 5: watch the Action run
-
-After the commit, go to the **Actions** tab on GitHub.
-
-You should see a workflow run called \`Validate TSV\`:
-
-\`\`\`
-✓  Validate TSV
-   Triggered by: push to annotator/BOA1010
-
-   Jobs:
-   ✓  validate (2s)
-      → Running validate.py on annotations/BOA1010.stub.tsv
-      → All 4 tokens: valid UPOS tags ✓
-      → No missing lemmas ✓
-      → Token IDs sequential ✓
-\`\`\`
-
-If the Action **fails**, read the error output — it tells you exactly which row has the problem.
-
----
-
-## Step 6 (annotator): open a pull request
-
-1. Go to the repo page → click **Compare & pull request**
-   (GitHub shows this banner automatically after a push)
-2. Set:
-   - **base:** \`main\`
-   - **compare:** \`annotator/BOA1010\`
-3. Write a PR description:
-
-\`\`\`
-Annotate BOA1010 (4 tokens)
-
-UPOS tags added for all tokens. One non-obvious case:
-token 1-3 (studi) — annotated VERB not NOUN, see commit
-message for reasoning. Please check against §3.2 of the
-guidelines.
-
-Checklist:
-✓ Validation passed
-✓ All lemmas filled
-✓ Commit message explains each decision
-\`\`\`
-
-4. Click **Create pull request**
-
----
-
-## Step 7 (manager): review all three pull requests
-
-Open each PR in turn. For each, check:
-
-- **Files changed** — is the diff minimal and correct?
-- **Checks** — did \`validate_tsv.py\` pass?
-- **Commit message** — does it explain the decision?
-
-**The key review moment: the pause divergence.**
-
-When reviewing Annotator C's PR, open \`conllu/BOD2018.conllu\` and check that \`PauseAfter=Yes\` appears on \`BOD2018_140\` token 1. Then open \`pivot/BOD2018.tsv\` and verify that \`139-1\` is still there as a \`shortpause\` token.
-
-Leave a comment on the CoNLL-U line:
-
-> \`PauseAfter=Yes\` on token 1 (\`sì\`, KID=139-0) correctly captures
-> the pause at TSV token 139-1. The TSV retains the explicit token
-> for query and interactional analysis; the CoNLL-U encodes it as
-> a feature for syntactic compatibility. Both are correct — the
-> formats serve different purposes.
-
-This comment is **permanently recorded** in the PR thread.
-
----
-
-## Step 8 (annotator): revise if needed
-
-If the manager requests changes:
-
-1. Go back to \`annotations/BOA1010.stub.tsv\` on your branch
-2. Make the edit
-3. Commit again — the Action re-runs automatically
-4. Reply to the comment in the PR thread
-
-\`\`\`
-# New commit message
-Revise token 1-2: add discourse marker note in misc column
-
-Following reviewer comment (§3.4): kept UPOS=ADV but added
-Discourse=Yes in the MISC column to flag the pragmatic use.
-\`\`\`
-
-The PR thread now has **two commits** and a resolved discussion — a complete adjudication record.
-
----
-
-## Step 9 (manager): approve and merge
-
-Once satisfied:
-
-1. Click **Review changes** → **Approve**
-2. Click **Merge pull request** → **Confirm merge**
-
-The \`stats\` Action fires on merge:
-
-\`\`\`
-✓  Update corpus statistics
-   Tokens annotated:   4
-   Total in corpus:    4  (0% remaining)
-   UPOS distribution:  CCONJ=1  ADV=1  VERB=1  NOUN=1
-   → stats/progress.json updated and committed to main
-\`\`\`
-
-The \`main\` branch now has the approved annotation. Your branch can be deleted.
-
----
-
-## Tour: what the repo looks like after the three merges
-
-\`\`\`
-main branch
-├── eaf/BOD2018.eaf          ← A's alignment corrections
-├── pivot/BOD2018.tsv        ← B's prolongation features; pause 139-1 intact
-├── conllu/BOD2018.conllu    ← C's deprel fix; PauseAfter=Yes on BOD2018_140:1
-└── (commit history)
-    ├── a3f9c12  "Initial BOD2018 stubs (TU 138–140)"
-    ├── 7b2e441  "Verify alignment for TU 139/140 overlap"       ← A
-    ├── 9d1f308  "Add prolongation features TU 138 tokens 6, 17" ← B
-    ├── 4c8a017  "Fix deprel token 19 in BOD2018_138_139"        ← C
-    ├── e2f1c08  "Merge PR #1: alignment (A)"
-    ├── f3a9d14  "Merge PR #2: prolongations (B)"
-    └── 1b7e305  "Merge PR #3: deprel fix (C)"
-\`\`\`
-
-Three people, three formats, three branches — one consistent, documented, validated corpus state on \`main\`.
-
-The pause is still in the TSV. The CoNLL-U knows about it via \`PauseAfter=Yes\`. Both are correct. The PR thread explains why.
-
----
-
-## Exercise: extend the scenario to TU 141–145
-
-Now continue the annotation on a fresh excerpt.
-
-1. Each group takes a role (A/B/C) for TU 141–145 of BOD2018
-2. Create a branch: \`annotator-a/tu141\`, \`annotator-b/tu141\`, \`annotator-c/tu141\`
-3. Make your edits to your assigned file
-4. Commit with a message that explains each decision
-5. Open a PR against \`main\`
-6. Exchange PRs with another group: review their work
-7. The manager merges in order: EAF → TSV → CoNLL-U
-
-**Discussion questions while you work:**
-
-- Is there another pause or non-linguistic token in TU 141–145? How is it handled in each format?
-- What happens if Annotator B and Annotator C make incompatible decisions about the same token?
-- How would the merge process differ if there were 100 annotators working on 2M tokens?
-
----
-
-## Using the GitHub web editor: zero setup required
-
-Everything we did is possible entirely from the browser:
-
-| Action | How |
-|---|---|
-| Create a branch | Branch dropdown → type name → Enter |
-| Edit a file | Click pencil icon on any file |
-| Commit | Scroll to "Commit changes" at bottom of editor |
-| Open a PR | "Compare & pull request" banner after push |
-| Review a PR | Files changed tab → click \`+\` on any line |
-| Merge | "Merge pull request" button |
-
-No \`git clone\`, no terminal. Useful for linguists who are new to version control — they can start contributing immediately.
-
----
-
 ## Open questions and next steps
 
 Things we did not cover — threads worth following:
@@ -1808,25 +1501,24 @@ Things we did not cover — threads worth following:
 
 ---
 
-## Thank you
-
-Dr. Ludovica Pannitto
-Alma Mater Studiorum — Università di Bologna
-\`ludovica.pannitto@unibo.it\`
-
-*KIParla corpus:* \`www.kiparla.it\`
-*KIParla Forest:* Pannitto et al. (2025), DepLing/SyntaxFest
-*GitHub workflow:* Waldon & Schneider (2025), LAW XIX
-
----
-
 *References*
 
-- Pannitto, L. & Mauri, C. (2025). Reuse by design. *CLARIN*.
-- Pannitto et al. (2025). Introducing KIParla Forest. *DepLing / SyntaxFest*.
-- Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.
-- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
+- Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.
 - de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
+- Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.
+- Dumitru et al. (2024). Version control for speech corpora. *KONVENS*.
+- Lehmann, C. (2004). Data in linguistics. *The Linguistic Review*.
+- Linell, P. (2019). The written language bias 40 years after. *Language Sciences*.
+- Mauri et al. (2019). KIParla corpus: a new resource for spoken Italian. *CLiC-it*.
+- Palmer, M. & Xue, N. (2010). Linguistic annotation. Chapter 10.
+- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *CLARIN*.
+- Pannitto et al. (2025). Introducing KIParla Forest. *DepLing / SyntaxFest*.
+- Rosenberg, A. (2012). Rethinking the corpus: moving towards dynamic linguistic resources. *Interspeech*.
+- San, N. (2016). Using version control for a reproducible workflow in acoustic phonetics. *SST2016*.
+- Software Carpentry (2024). *Version Control with Git*. The Carpentries. https://swcarpentry.github.io/git-novice/
+- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
+- Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.
+- Zeman, D., Savary, A. & Guillaume, B. (2024). Git Infrastructure. *UniDive Training School*, Chișinău.
 `
 };
 </script>

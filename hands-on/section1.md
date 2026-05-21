@@ -1,9 +1,5 @@
 # Git as a Collaborative Environment for Multilayer Spoken Resource Development
 
-**Speech Matters Spring School**
-
-Dr. Ludovica Pannitto — Università di Bologna
-
 ---
 
 ## Why spoken corpora are hard to manage collaboratively
@@ -11,6 +7,18 @@ Dr. Ludovica Pannitto — Università di Bologna
 > "Nothing is, in and of itself, a datum; instead, it is a datum for somebody in some perspective."
 >
 > — Lehmann (2004), *Data in linguistics*
+
+In NLP there is often an unstated assumption about the reality of the datum, spoken data confront us with the fact
+that every bit of information is in fact a stratification of several levels of interpretation
+
+| Research object          | Observable                                      |
+| ------------------------ | ----------------------------------------------- |
+| ultimate substrate       | speech event                                    |
+| epistemic object         | utterance in the speech event                   |
+| original recording       | video/audio tape of the speech event            |
+| derived representation   | transcription and annotation of the utterance   |
+
+*Adapted from Lehmann (2004), "Data in linguistics"*
 
 ---
 
@@ -57,13 +65,6 @@ A large (~2M token) corpus of spontaneous spoken Italian
 
 - Started in **2016**, collaboration between University of Bologna and University of Turin
 - Built around **modularity**: new modules added with compatible metadata and transcription conventions
-- Data collection → archiving → transcription (Jefferson conventions in ELAN) → revision by a single expert linguist → pseudonymization → release
-
-*Mauri et al. (2019) · Pannitto et al. (2025)*
-
----
-
-## The current pipeline
 
 ```
 fieldwork (many people)
@@ -81,7 +82,10 @@ linearized exports
     └── verticalized .vert           [NoSketchEngine, Sketch Engine]
 ```
 
+*Mauri et al. (2019) · Pannitto et al. (2025)*
+
 **The deeper problem**: many of the derived formats, tools, and pipelines were not designed with spoken interaction in mind.
+
 They do not model:
 - the **speaker** as a social agent producing situated language
 - the **interactional setting** — who is talking to whom, under what circumstances
@@ -89,18 +93,18 @@ They do not model:
 
 They were built for monological linear text, then retrofitted for spoken language and interaction.
 
-**Problems with the current pipeline**:
-
-- The pipeline is a *one-way street* — upstream corrections do not propagate to downstream layers or exports
-- Validation is *not enforced* — annotation errors only surface when someone notices them, and it's hard to propagate corrections
-- At this scale, and with a growing corpus, consistency *cannot be maintained manually* — automatic pipelines are needed
-- Each undocumented shortcut, implicit modeling choice, and ad hoc format migration accumulates as **technical and conceptual debt** — making future transformations, collaboration, and reuse increasingly fragile
-
 ---
 
 ## From pipeline to pivot
 
-The linear model treats ELAN as the authoritative source. Every derived format is a dead end — a correction to the source does not reach the outputs, and there is no path back.
+**Problems with the current pipeline**:
+
+- The pipeline is a *one-way street* — it works like a cascade from transcription to downstream layers. When you work downstream, it's hard to swim upstream
+- Validation is *not enforced* — annotation errors only surface when someone notices them, and it's hard to propagate corrections
+- At this scale, and with a growing corpus, consistency *cannot be maintained manually* — automatic pipelines are needed
+- Each undocumented shortcut, implicit modeling choice, and ad hoc format migration accumulates as **technical and conceptual debt** — making future transformations, collaboration, and reuse increasingly fragile
+
+The linear model treats **ELAN** as the authoritative source. Every derived format is a dead end.
 
 We argue for the introduction of a **pivot model**, which replaces the pipeline with a single maintained representation at the centre:
 
@@ -108,7 +112,7 @@ We argue for the introduction of a **pivot model**, which replaces the pipeline 
 
 In the case of KIParla, the pivot is a **verticalized, pseudo-tokenized TSV** — one token per row, enriched with lexical, prosodic, interactional, and alignment features. From it, all formats are reproducibly derived by conversion scripts.
 
-Crucially, the architecture is **bidirectional**: corrections applied at the pivot level propagate to all derived formats and vice versa, without breaking annotation on the rest of the resource.
+Crucially, the architecture is **bidirectional**: corrections applied at the pivot level propagate to all derived formats and vice versa (to some extent), without breaking annotation on the rest of the resource.
 
 For this to work, the pivot format must satisfy four requirements:
 
@@ -156,29 +160,15 @@ In the .eaf XML, they live **3000+ lines apart**:
 ```
 
 - Temporal overlap is **not encoded** — only recoverable by cross-referencing `ts` IDs
-- Jefferson notation is **mangled** by XML escaping (`>` → `&gt;`)
+- Different levels are mixed: it's not easy to decouple Jefferson notation from transcription
 - Additional annotation layers are **external or tool-dependent**
 - No path to add morphosyntax, prosody, or speech acts without breaking the format
 
 ---
 
-## What goes wrong with widely adopted pipelines
-
-| Problem                       | Consequence                                                                                   |
-| ----------------------------- | --------------------------------------------------------------------------------------------- |
-| Opaqueness                    | Cannot retrace annotation decisions                                                           |
-| Non-reversible edits          | Ad-hoc choices crystallize permanently                                                        |
-| Single expert bottleneck      | Knowledge locked in one person; infrastructure becomes unintelligible to the rest of the team |
-| No adjudication trail         | Inter-annotator disagreement invisible                                                        |
-| Static releases               | Errors cannot be corrected incrementally                                                      |
-| Undocumented format migration | Each conversion introduces silent distortions of meaning                                      |
-| Technical and conceptual debt | Earlier shortcuts constrain every future transformation                                       |
-
----
-
 ## The invisible cost of infrastructure
 
-> Digital Humanities projects often struggle not because of analytical complexity,
+> Language Resources projects often struggle not because of analytical complexity,
 > but because of **fragile data workflows**, undocumented transformations,
 > and ad hoc collaboration practices.
 
@@ -236,13 +226,16 @@ each optimised for a specific stage of the data lifecycle.
 
 New data are added · Errors are corrected · Formats evolve · New reuse scenarios emerge
 
-→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself — and software engineering already has mature tools for exactly this. We do not need to reinvent the wheel.
+→ This requires **versioning**, **traceability**, and **reversibility** built into the workflow itself — and software engineering already has mature tools for exactly this.
 
 ---
 
 ## The DevOps analogy
 
-**DevOps** (**Dev**elopment + **Op**erations) is a set of practices from software engineering that breaks down the traditional wall between the people who *write* code and the people who *deploy and maintain* it. The combined workflow treats development as a *continuous, collaborative, and automated* process — rather than a sequence of isolated handoffs. Its core idea: every change is tracked, every build is reproducible, and quality is enforced automatically before anything reaches production.
+**DevOps** (**Dev**elopment + **Op**erations) is a set of practices from software engineering that breaks down the traditional wall between the people who *write* code and the people who *deploy and maintain* it.
+The combined workflow treats development as a *continuous, collaborative, and automated* process — rather than a sequence of isolated handoffs.
+
+> every change is tracked, every build is reproducible, and quality is enforced automatically before anything reaches production.
 
 | Software development | Corpus development                     |
 | -------------------- | -------------------------------------- |
@@ -269,16 +262,3 @@ Those tools are:
 
 We do not need to build new infrastructure. We need to apply existing infrastructure to a new domain.
 
----
-
-*References*
-
-- Chrupała, G. (2023). Putting natural in natural language processing. *ACL Findings*.
-- Pannitto, L. (submitted). Data Plumbing Toolkit: managing the invisible infrastructure of DH work. *European Summer University in Digital Humanities* workshop proposal.
-- Dobrovoljc, K. (2022). Spoken language treebanks in Universal Dependencies. *LREC*.
-- Lehmann, C. (2004). Data in linguistics. *The Linguistic Review*.
-- Linell, P. (2019). The written language bias 40 years after. *Language Sciences*.
-- Mauri et al. (2019). KIParla corpus: a new resource for spoken Italian. *CLiC-it*.
-- Pannitto, L. & Mauri, C. (2025). Reuse by design: a pivot-based architecture for the KIParla corpus. *forthcoming*.
-- Pannitto et al. (2025). Introducing KIParla forest. *DepLing / SyntaxFest*.
-- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.

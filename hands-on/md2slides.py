@@ -149,7 +149,10 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 .slide pre{background:var(--code-bg);border:0.5px solid var(--border);border-left:3px solid var(--accent2);border-radius:6px;padding:18px 22px;margin:0 0 18px;overflow-x:auto;max-width:860px;flex-shrink:0}
 .slide pre code{font-family:var(--font-mono);font-size:clamp(10px,1vw,13px);line-height:1.65;color:#a8c4cc}
 .slide code:not(pre code){font-family:var(--font-mono);font-size:.87em;background:var(--code-bg);border:0.5px solid var(--border);padding:1px 5px;border-radius:3px;color:var(--accent2)}
-.slide img{max-width:100%;max-height:45vh;height:auto;display:block;margin:0 auto 18px;border-radius:4px;border:0.5px solid var(--border)}
+.slide img{max-width:100%;max-height:65vh;height:auto;display:block;margin:0 auto 18px;border-radius:4px;border:0.5px solid var(--border);cursor:zoom-in}
+#lightbox{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.88);align-items:center;justify-content:center;cursor:zoom-out}
+#lightbox.open{display:flex}
+#lightbox img{max-width:92vw;max-height:92vh;border-radius:6px;border:0.5px solid var(--border);box-shadow:0 8px 48px rgba(0,0,0,.7)}
 .slide table{border-collapse:collapse;width:100%;max-width:860px;margin-bottom:18px;font-size:clamp(11px,1.2vw,14px)}
 .slide th{background:var(--code-bg);color:var(--accent);font-weight:500;font-family:var(--font-mono);font-size:.84em;letter-spacing:.04em;padding:9px 13px;text-align:left;border-bottom:1px solid var(--border)}
 .slide td{padding:8px 13px;border-bottom:0.5px solid var(--border);color:var(--text);vertical-align:top}
@@ -170,6 +173,15 @@ body{background:var(--bg);color:var(--text);font-family:var(--font-body);font-we
 .slide::-webkit-scrollbar{width:3px}
 .slide::-webkit-scrollbar-track{background:transparent}
 .slide::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.slide-home{background:var(--surface);justify-content:center}
+.slide-home .home-title{font-family:var(--font-head);font-size:clamp(22px,2.8vw,40px);font-weight:400;color:var(--text);line-height:1.25;max-width:820px;margin-bottom:16px}
+.slide-home .home-rule{width:56px;height:2px;background:var(--accent);margin:20px 0 32px}
+.slide-home .home-chapters{list-style:none;padding:0;margin:0;max-width:820px}
+.slide-home .home-chapters li{display:flex;align-items:baseline;gap:16px;padding:10px 0;border-bottom:0.5px solid var(--border);cursor:pointer;transition:color .15s}
+.slide-home .home-chapters li:last-child{border-bottom:none}
+.slide-home .home-chapters li:hover .home-ch-title{color:var(--accent)}
+.slide-home .home-ch-num{font-family:var(--font-mono);font-size:11px;color:var(--accent);letter-spacing:.1em;flex-shrink:0;width:40px}
+.slide-home .home-ch-title{font-size:clamp(14px,1.5vw,18px);color:var(--text);font-weight:300}
 """
 
 # ── JS runtime ────────────────────────────────────────────────────────────────
@@ -203,6 +215,26 @@ function buildSlide(raw,idx,si){
   }
   return div;
 }
+function buildHomeSlide(){
+  const div=document.createElement('div');
+  div.className='slide slide-home';
+  div.id='slide-home';
+  const t=document.createElement('h1');
+  t.className='home-title';t.textContent=HOME_TITLE;
+  div.appendChild(t);
+  const rule=document.createElement('div');rule.className='home-rule';div.appendChild(rule);
+  const ul=document.createElement('ul');ul.className='home-chapters';
+  SECTIONS.forEach((sec,i)=>{
+    const li=document.createElement('li');
+    const num=document.createElement('span');num.className='home-ch-num';num.textContent=String(i+1).padStart(2,'0');
+    const title=document.createElement('span');title.className='home-ch-title';title.textContent=sec.h1;
+    li.appendChild(num);li.appendChild(title);
+    li.addEventListener('click',()=>jumpSection(i));
+    ul.appendChild(li);
+  });
+  div.appendChild(ul);
+  return div;
+}
 async function fetchMd(file){
   try{const r=await fetch(file);if(!r.ok)throw 0;return await r.text();}
   catch{return FALLBACKS[file]||`## Coming soon\\n\\nThis section is not yet available.`;}
@@ -218,14 +250,43 @@ async function loadSection(idx){
     return s;
   });
 }
-function showSlide(si,ii,dir){
+function hideHomeSlide(){
+  const h=document.getElementById('slide-home');
+  if(h){h.classList.remove('active');h.style.display='none';}
+}
+function showHomeSlide(dir){
+  hideCurrentSlide(dir);
+  currentSection=-1;currentSlide=0;
+  const h=document.getElementById('slide-home');
+  h.style.display='';
+  if(dir!==0){
+    h.style.opacity='0';
+    h.style.transform=dir>=0?'translateX(40px)':'translateX(-40px)';
+    requestAnimationFrame(()=>requestAnimationFrame(()=>{h.style.opacity='';h.style.transform='';}));
+  }
+  h.classList.add('active');
+  document.getElementById('slide-counter').textContent='— / —';
+  document.getElementById('progress-fill').style.width='0%';
+  document.getElementById('btn-prev').disabled=true;
+  document.getElementById('btn-next').disabled=false;
+  document.querySelectorAll('.sec-tab').forEach(t=>t.classList.remove('active'));
+}
+function hideCurrentSlide(dir){
+  if(currentSection===-1){
+    const h=document.getElementById('slide-home');
+    if(h){h.classList.remove('active');h.style.opacity='0';h.style.transform=dir>=0?'translateX(-40px)':'translateX(40px)';
+      setTimeout(()=>{h.style.opacity='';h.style.transform='';h.style.display='none';},300);}
+    return;
+  }
   const cur=sections[currentSection]?.[currentSlide];
   if(cur){
-    cur.classList.remove('active');
-    cur.style.opacity='0';
+    cur.classList.remove('active');cur.style.opacity='0';
     cur.style.transform=dir>=0?'translateX(-40px)':'translateX(40px)';
     setTimeout(()=>{cur.style.opacity='';cur.style.transform='';cur.style.display='none';},300);
   }
+}
+function showSlide(si,ii,dir){
+  hideCurrentSlide(dir);
   currentSection=si;currentSlide=ii;
   const next=sections[si][ii];
   next.style.display='';
@@ -238,20 +299,29 @@ function showSlide(si,ii,dir){
   const total=sections[si].length;
   document.getElementById('slide-counter').textContent=`${ii+1} / ${total}`;
   document.getElementById('progress-fill').style.width=(total>1?(ii/(total-1))*100:100)+'%';
-  document.getElementById('btn-prev').disabled=si===0&&ii===0;
+  document.getElementById('btn-prev').disabled=false;
   document.getElementById('btn-next').disabled=si===SECTIONS.length-1&&ii===total-1;
   document.querySelectorAll('.sec-tab').forEach((t,i)=>t.classList.toggle('active',i===si));
 }
 async function go(delta){
+  if(currentSection===-1){
+    if(delta>0){await loadSection(0);showSlide(0,0,1);}
+    return;
+  }
   let s=currentSection,i=currentSlide+delta;
-  if(i<0){s--;if(s<0)return;await loadSection(s);i=sections[s].length-1;}
-  else if(i>=sections[currentSection].length){s++;if(s>=SECTIONS.length)return;await loadSection(s);i=0;}
+  if(i<0){
+    if(s===0){showHomeSlide(-1);return;}
+    s--;await loadSection(s);i=sections[s].length-1;
+  }else if(i>=sections[currentSection].length){
+    s++;if(s>=SECTIONS.length)return;await loadSection(s);i=0;
+  }
   showSlide(s,i,delta);
 }
 async function jumpSection(idx){
   if(idx===currentSection)return;
   await loadSection(idx);
-  showSlide(idx,0,idx>currentSection?1:-1);
+  const dir=currentSection===-1?1:(idx>currentSection?1:-1);
+  showSlide(idx,0,dir);
 }
 function buildTabs(){
   const nav=document.getElementById('section-tabs');
@@ -266,19 +336,30 @@ document.addEventListener('keydown',e=>{
   if(['ArrowRight','ArrowDown',' '].includes(e.key)){e.preventDefault();go(1);}
   if(['ArrowLeft','ArrowUp'].includes(e.key)){e.preventDefault();go(-1);}
   if(e.key==='f'||e.key==='F')document.documentElement.requestFullscreen?.();
+  if(e.key==='0')showHomeSlide(-1);
   if(e.key>='1'&&e.key<='9')jumpSection(parseInt(e.key)-1);
 });
 document.getElementById('btn-next').addEventListener('click',()=>go(1));
 document.getElementById('btn-prev').addEventListener('click',()=>go(-1));
+const lb=document.getElementById('lightbox');
+const lbImg=document.getElementById('lightbox-img');
+document.getElementById('stage').addEventListener('click',e=>{
+  if(e.target.tagName==='IMG'){lbImg.src=e.target.src;lb.classList.add('open');}
+});
+lb.addEventListener('click',()=>{lb.classList.remove('open');lbImg.src='';});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&lb.classList.contains('open')){lb.classList.remove('open');lbImg.src='';}},true);
 let tx=null;
 document.addEventListener('touchstart',e=>{tx=e.touches[0].clientX;});
 document.addEventListener('touchend',e=>{if(tx===null)return;const dx=e.changedTouches[0].clientX-tx;if(Math.abs(dx)>40)go(dx<0?1:-1);tx=null;});
 (async()=>{
   buildTabs();
+  const stage=document.getElementById('stage');
+  const homeEl=buildHomeSlide();
+  homeEl.style.display='none';
+  stage.appendChild(homeEl);
   document.getElementById('loading').remove();
-  await loadSection(0);
-  showSlide(0,0,0);
-  if(SECTIONS.length>1)loadSection(1).catch(()=>{});
+  showHomeSlide(0);
+  loadSection(0).catch(()=>{});
 })();
 """
 
@@ -308,6 +389,8 @@ HTML_TEMPLATE = """\
   </div>
 </div>
 
+<div id="lightbox"><img id="lightbox-img" src="" alt=""/></div>
+
 <div id="stage">
   <div id="loading">Loading slides\u2026</div>
 </div>
@@ -328,8 +411,9 @@ HTML_TEMPLATE = """\
 <script>
 // ── Section manifest (generated by md2slides.py {version}) ──
 const SECTIONS = {sections_json};
+const HOME_TITLE = {home_title_json};
 
-let currentSection = 0, currentSlide = 0;
+let currentSection = -1, currentSlide = 0;
 let sections = [];
 
 {js_runtime}
@@ -360,9 +444,13 @@ def build_html(sections_meta: list[dict], args) -> str:
     if len(course_label) > 40:
         course_label = course_label[:37] + '…'
 
-    # Sections JSON for JS
+    # Home title
+    home_title = args.home_title
+    home_title_json = json.dumps(home_title, ensure_ascii=False)
+
+    # Sections JSON for JS — include h1 so the home slide can render chapter titles
     sections_js = [
-        {"file": s["file"], "label": s["label"], "chip": s["chip"]}
+        {"file": s["file"], "label": s["label"], "chip": s["chip"], "h1": s["h1"]}
         for s in sections_meta
     ]
     sections_json = json.dumps(sections_js, ensure_ascii=False, indent=2)
@@ -390,6 +478,7 @@ def build_html(sections_meta: list[dict], args) -> str:
         course_label=course_label,
         n_sections=len(sections_meta),
         sections_json=sections_json,
+        home_title_json=home_title_json,
         js_runtime=JS_RUNTIME,
         fallbacks=fallbacks,
         version=__version__,
@@ -410,6 +499,9 @@ def parse_args():
                    help='Output HTML filename (default: index.html)')
     p.add_argument('--title', default='',
                    help='Browser tab title (default: first h1 of first file)')
+    p.add_argument('--home-title',
+                   default='Lab – Hands-on Speech Corpus Processing: Standardization, Automation, and GitOps for Reproducibility',
+                   help='Title shown on the home slide')
     p.add_argument('--author', default='',
                    help='Author string shown in footer (default: Dr. Ludovica Pannitto)')
     p.add_argument('--version', action='version', version=f'md2slides {__version__}')

@@ -26,10 +26,8 @@ BOA1010_FINAL_USE_THIS_ONE_v2_corrected_LP.eaf
 
 - Which is the authoritative version?
 - Who made the `_corrected` changes, and why?
-- Do you know exactly what changed from previous version to the last?
+- Do you know exactly what changed from `BOA1010_FINAL_USE_THIS_ONE.eaf` to `BOA1010_FINAL_USE_THIS_ONE_v2_corrected.eaf`?
 - What happens when two annotators work on different copies?
-
-This is the default state of most annotation projects without version control.
 
 *Software Carpentry (2024)*
 
@@ -245,6 +243,41 @@ git diff README.md
 
 ---
 
+## How a diff summarizes what changed
+
+In Exercise 2 you ran:
+
+```bash
+echo "Spontaneous spoken Italian corpus" >> README.md
+git diff README.md
+```
+
+Your README started as a single line:
+
+```
+# My corpus
+```
+
+After the `echo` command it has a second line:
+
+```
+# My corpus
+Spontaneous spoken Italian corpus
+```
+
+`git diff README.md` collapses that to:
+
+```diff
+@@ -1 +1,2 @@
+ # My corpus
++Spontaneous spoken Italian corpus
+```
+
+Lines with `+` were added. Unchanged context lines (no prefix) anchor the change in the file.
+The `@@` header tells you the line numbers: the old file had 1 line starting at line 1; the new version has 2 lines.
+
+---
+
 ## The four states of a file
 
 Every file in a Git repository is in one of four states:
@@ -300,50 +333,61 @@ Each commit has:
 
 ## What a diff looks like
 
-```diff
-# sent_id = BOA1010-003
-# text = e quindi studi: pittura?
+From `speech-matters-demo`: an annotator fills in the missing dependency head and relation for token 19 (`sì`) in sentence `BOD2018_138_139`.
 
--1  e      _    _    _    _  0  root  _  _
--2  quindi _    _    _    _  0  root  _  _
-+1  e      e    CCONJ _   _  3  cc    _  _
-+2  quindi quindi ADV _   _  3  advmod _  _
- 3  studi  studiare VERB _  _  0  root  _  _
+```diff
+ 18  più   più   ADV   _  _  20  advmod    _  KID=138-17|Prolonged=Yes
+-19  sì    sì    ADV   _  _  _   _         _  Clitic=Yes|KID=138-18
++19  sì    sì    ADV   _  _  20  discourse _  Clitic=Yes|KID=138-18
+ 20  anni  anno  NOUN  _  _  0   root      _  KID=138-19
 ```
 
-Lines prefixed `-` were removed · lines prefixed `+` were added
+Column 7 is the head token; column 8 is the syntactic relation.
+The commit message explains *why*: `"sì at 138-18 is a discourse marker attached to root anni (20)"`.
 
-→ The diff is a **human-readable record of every annotation decision**
+→ The diff + message together are a **permanent, auditable annotation decision**
 
 ---
 
-## Exercise 3 — Browse the history
+## Exercise 3 — Fork, clone, and explore a richer history
+
+This exercise uses **speech-matters-demo**, a pre-built repository with several commits already in it.
+
+**Step 1 — Fork and clone**
+
+1. Go to `github.com/ellepannitto/speech-matters-demo`
+2. Click **Fork** (top-right) — this creates your own copy on GitHub
+3. Clone your fork to your machine:
 
 ```bash
-# 1. Make two more small commits (add files, edit README, anything)
-echo "speaker_id,age,gender" > metadata/speakers.tsv
-git add metadata/speakers.tsv
-git commit -m "Add speakers metadata stub"
+git clone https://github.com/<your-username>/speech-matters-demo.git
+cd speech-matters-demo
+```
 
-# 2. View the full log
+**Step 2 — Inspect the history**
+
+```bash
+# 1. View the full commit history
 git log --oneline
 
-# 3. See exactly what changed in a specific commit (use your own hash)
-git show a3f9c12
+# 2. See exactly what changed in a specific commit
+#    (use the hash of "add speaker and conversation metadata for BOD2018")
+git show <hash>
 
-# 4. Go back and look at a past state — without changing anything
-git checkout HEAD~1 -- README.md   # restore previous version of one file
-git diff README.md                 # see what was different
-git checkout HEAD -- README.md     # put the current version back
+# 3. Travel back to an earlier state of the whole repository
+git checkout <earlier-hash>    # HEAD is now "detached"
+ls                             # the working directory reflects that past state
 
-# 5. Check that you're back to normal
-git status
+# 4. Come back to the present
+git checkout main
+git status                     # should be clean
 ```
 
 **What to observe:**
-- `git show <hash>` displays the full diff for any past commit
-- `git checkout <commit> -- <file>` lets you inspect a past version without rewriting history
-- You can always get back: Git does not forget anything
+- `git log --oneline` gives you a compact timeline of every decision in the project
+- `git show <hash>` displays the full diff for any past commit — message, author, and changed lines
+- `git checkout <hash>` moves the entire working directory to that past state ("detached HEAD")
+- `git checkout main` brings you back — Git does not forget anything
 
 ---
 
@@ -567,7 +611,6 @@ UD uses GitHub for:
 
 > `github.com/UniversalDependencies` — 200+ repositories, thousands of contributors
 
-
 ---
 
 ## Monitoring the project: Issues and permalinks
@@ -604,27 +647,3 @@ Annotators unfamiliar with Git face a real barrier. Mitigation strategies:
 > The goal is not to turn linguists into software engineers.
 > The goal is to give annotation projects **the same reliability guarantees** that software projects have.
 
----
-
-## Part 2 — Summary
-
-- A **repository** stores all files and their complete history
-- A **commit** is a timestamped, labelled snapshot — the annotation justification
-- A **branch** lets annotators work safely in parallel
-- A **pull request** is the adjudication interface — discussion, review, merge
-- **Actions** automate validation, visualization, and statistics
-- **Issues and permalinks** make the project auditable — every decision has a thread, every thread points to a line
-- The workflow is already proven at scale in Universal Dependencies
-- **Part 3** will re-examine these concepts in the specific context of spoken corpus data: binary audio, GDPR, multilayer formats, and the pivot architecture
-
----
-
-*References*
-
-- de Marneffe et al. (2021). Universal Dependencies. *Computational Linguistics* 47(2).
-- Software Carpentry (2024). *Version Control with Git*. The Carpentries. https://swcarpentry.github.io/git-novice/
-- Zeman, D., Savary, A. & Guillaume, B. (2024). Git Infrastructure. *UniDive Training School*, Chișinău.
-- Palmer, M. & Xue, N. (2010). Linguistic annotation. Chapter 10.
-- San, N. (2016). Using version control for a reproducible workflow in acoustic phonetics. *SST2016*.
-- Steiner, I. (2017). A DevOps manifesto for speech corpus management. *ESSV*.
-- Waldon, B. & Schneider, N. (2025). A GitHub-based workflow for annotated resource development. *LAW XIX*.

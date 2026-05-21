@@ -409,17 +409,7 @@ No `git clone`, no terminal. Useful for linguists who are new to version control
 
 ---
 
-## Open questions and next steps
 
-Things we did not cover — threads worth following:
-
-- **Parallel annotation:** two annotators on the same file → branching model for disagreement → inter-annotator agreement computed from PR diffs
-- **Integration with annotation tools:**
-- **Incremental releases:** `git tag v1.0.0` + Zenodo webhook → automatic DOI on every tag
-
-> "By embracing version control practices and technologies, we can foster more rigorous, collaborative, and sustainable approaches to linguistic annotation."
->
-> — Waldon & Schneider (2025)
 
 ---
 
