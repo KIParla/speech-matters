@@ -4,14 +4,9 @@
 
 ## Before we start: forming groups
 
-1. Everyone stands up
-2. *"If you have used Git before — even once — move to the left side of the room. If not, stay right."*
-3. *"Now within each half: if you speak Italian, move to the front. Otherwise, the back."*
-4. Count heads in each quadrant; divide by target group size (4–5)
-5. Take one person from each quadrant in turn to fill each group
-6. Once in groups, assign roles by counting off: **1 = Manager · 2 = Annotators**
-
-One rule: the Git-experienced person **explains, does not type**. Others drive the keyboard.
+1. *"If you have used Git before — even once — raise your hand."*
+2. Form groups of 4–5, making sure each group has at least one Git-experienced person
+3. The Git-experienced person **explains, does not type** — others drive the keyboard
 
 ---
 

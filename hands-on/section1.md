@@ -2,6 +2,18 @@
 
 ---
 
+## What I hope you take away
+
+The tools and ideas in this session were not built for linguists.
+
+They come from software engineering, and some parts may feel abstract or over-engineered for what you currently do.
+
+That is fine.
+
+My goal is not to convince you to adopt a full DevOps pipeline tomorrow. It is to **spark some curiosity**: to show that tools designed to manage complexity in large collaborative codebases can be repurposed to make corpus work more transparent, more reproducible, and easier to share — and that the gap between "what a software engineer does" and "what a corpus linguist needs" is smaller than it looks.
+
+---
+
 ## Why spoken corpora are hard to manage collaboratively
 
 > "Nothing is, in and of itself, a datum; instead, it is a datum for somebody in some perspective."
@@ -112,6 +124,41 @@ For this to work, the pivot format must satisfy four requirements:
 - **Extensible** — new annotation layers are added as columns, without restructuring existing data
 
 *Pannitto & Mauri (2025)*
+
+---
+
+## What we wanted to build
+
+We started with a concrete goal: annotate spoken Italian for syntax, producing UD treebanks.
+
+Here is what a single sentence looks like — in CoNLL-U, and as a dependency tree:
+
+```conllu
+# sent_id = BOA3017_126
+# text = come nei sottotitoli
+# jefferson_text = come nei sottotitoli
+# speaker_id = BO146
+# conversation_id = BOA3017
+1     come         come        ADP   _  _                                          4  case  _  Begin=190.273|KID=126-0
+2-3   nei          _           _     _  _                                          _  _     _  KID=126-1
+2     in           in          ADP   _  _                                          4  case  _  KID=126-1a
+3     i            il          DET   _  Definite=Def|Gender=Masc|Number=Plur|...   4  det   _  KID=126-1b
+4     sottotitoli  sottotitolo NOUN  _  Gender=Masc|Number=Plur                   0  root  _  Coconstruct=obl::BOA3017_120_121_123_125::31|End=191.293|KID=126-2
+```
+
+![Dependency tree for "come nei sottotitoli" — tokens carry timestamps, KIParla IDs, and a cross-utterance co-construction link](assets/sent_74.svg)
+
+The tree is not just syntax. Each node already encodes:
+
+- **timing** (`Begin=190.273`, `End=191.293`) — where in the audio this token occurs
+- **corpus ID** (`KID=126-*`) — linking back to the transcription
+- **interactional structure** (`Coconstruct=obl::BOA3017_120_121_123_125::31`) — *sottotitoli* is co-constructed across speakers, completing a turn started elsewhere
+
+And here is the same sentence as it appears in ELAN:
+
+![ELAN view of the same sentence](assets/elan-sent74.png)
+
+The problem became clear quickly: **syntax is not a layer you can annotate in isolation**. It sits on top of conversational analysis, prosodic annotation, timing alignment, and speaker information. Strip those away and the annotation loses its meaning.
 
 ---
 
